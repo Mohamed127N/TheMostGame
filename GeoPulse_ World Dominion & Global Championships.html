@@ -1,0 +1,4161 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>نبض الجيوسياسة: الهيمنة العالمية والبطولات الكبرى</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Amiri:wght@700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ocean-bg: #9AD3F5;
+            --dock-bg: #0f172a;
+            --card-bg: #1e293b;
+            --card-border: rgba(148, 163, 184, 0.22);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-primary: #38bdf8;
+        }
+
+        body.epoch-ancient {
+            --ocean-bg: #6b8e9b;
+            --dock-bg: #231912;
+            --card-bg: #33251a;
+            --card-border: rgba(217, 160, 91, 0.35);
+            --text-main: #fef3c7;
+            --text-muted: #d6bc94;
+            --accent-primary: #f59e0b;
+        }
+
+        body.epoch-medieval {
+            --ocean-bg: #5d7b93;
+            --dock-bg: #1c1917;
+            --card-bg: #292524;
+            --card-border: rgba(180, 140, 100, 0.32);
+            --text-main: #f5f5f4;
+            --text-muted: #a8a29e;
+            --accent-primary: #d97706;
+        }
+
+        body.epoch-worldwar {
+            --ocean-bg: #729eb5;
+            --dock-bg: #111827;
+            --card-bg: #1f2937;
+            --card-border: rgba(244, 63, 94, 0.28);
+        }
+
+        body.mode-worldcup {
+            --ocean-bg: #15803d;
+            --dock-bg: #090d16;
+            --card-bg: #162032;
+            --card-border: rgba(52, 211, 153, 0.28);
+        }
+
+        body.mode-chess {
+            --ocean-bg: #1e293b;
+            --dock-bg: #0b1120;
+            --card-bg: #172033;
+            --card-border: rgba(251, 191, 36, 0.28);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--dock-bg);
+            color: var(--text-main);
+            transition: background-color 0.3s ease;
+        }
+
+        /* Split-Screen Layout: Top 55% Interactive Canvas / Bottom 45% Scrollable Control Dock */
+        #app-layout {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        #canvas-viewport {
+            position: relative;
+            width: 100%;
+            height: 55vh;
+            background-color: var(--ocean-bg);
+            overflow: hidden;
+            border-bottom: 2px solid rgba(148, 163, 184, 0.32);
+        }
+
+        #main-canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        /* Subtle Map Controls (Only in Map Modes) */
+        .map-corner-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 20;
+        }
+
+        .map-ctrl-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            border: 1px solid rgba(15, 23, 42, 0.22);
+            background: rgba(255, 255, 255, 0.92);
+            color: #0f172a;
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16);
+            cursor: pointer;
+        }
+
+        .map-ctrl-btn:active {
+            transform: scale(0.92);
+            background: #e2e8f0;
+        }
+
+        .map-legend-strip {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            background: rgba(255, 255, 255, 0.90);
+            border: 1px solid rgba(15, 23, 42, 0.14);
+            border-radius: 999px;
+            padding: 3px 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #1e293b;
+            pointer-events: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .legend-dot-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .dot-swatch {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Bottom 45% Dock */
+        #control-dock {
+            width: 100%;
+            height: 45vh;
+            background: var(--dock-bg);
+            overflow-y: auto;
+            padding: 10px 12px 20px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dock-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 10px 12px;
+        }
+
+        .player-top-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .player-title-group {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .player-flag-dot {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .player-name-lbl {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .tier-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            color: #fff;
+        }
+
+        .epoch-pill-badge {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(245, 158, 11, 0.45);
+            color: #fbbf24;
+        }
+
+        .sim-speed-group {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .speed-btn {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            color: #cbd5e1;
+            padding: 3px 8px;
+            border-radius: 7px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .speed-btn.active {
+            background: #2563eb;
+            border-color: #60a5fa;
+            color: #fff;
+        }
+
+        .stats-grid-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+        }
+
+        .stat-pill {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 10px;
+            padding: 5px 4px;
+            text-align: center;
+        }
+
+        .stat-pill-lbl {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .stat-pill-val {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .alliance-strip, .war-penalty-strip {
+            display: none;
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .alliance-strip {
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.38);
+            color: #bae6fd;
+        }
+
+        .war-penalty-strip {
+            background: rgba(225, 29, 72, 0.18);
+            border: 1px solid rgba(244, 63, 94, 0.45);
+            color: #fda4af;
+        }
+
+        .dev-actions-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .action-dev-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 9px 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-dev-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-econ-dev {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            color: #fff;
+        }
+
+        .btn-mil-dev {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: #fff;
+        }
+
+        .btn-subtext {
+            font-size: 10px;
+            font-weight: 600;
+            opacity: 0.92;
+        }
+
+        .target-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            gap: 6px;
+        }
+
+        .target-name-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .target-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .target-title {
+            font-size: 14.5px;
+            font-weight: 800;
+        }
+
+        .target-sovereign {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .target-stats-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .power-balance-box, .colony-panel-box {
+            background: rgba(15, 23, 42, 0.68);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 10px;
+            padding: 8px 10px;
+            margin-bottom: 10px;
+        }
+
+        .colony-panel-box {
+            border-color: rgba(245, 158, 11, 0.35);
+        }
+
+        .pb-labels, .colony-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .pb-track, .colony-bar-track {
+            width: 100%;
+            height: 7px;
+            background: #334155;
+            border-radius: 999px;
+            overflow: hidden;
+            display: flex;
+        }
+
+        .pb-track { background: #dc2626; }
+        .pb-attacker-fill { height: 100%; background: #38bdf8; transition: width 0.25s; }
+        .colony-bar-fill { height: 100%; background: #f59e0b; transition: width 0.2s; }
+
+        .pb-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+        }
+
+        .btn-action-main {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 11px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13.5px;
+            font-weight: 800;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .btn-invade-style { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); }
+        .btn-colony-style { background: linear-gradient(135deg, #d97706 0%, #b45309 100%); }
+        .btn-wc-style { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .btn-chess-style { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #0f172a; }
+
+        .btn-action-main:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .section-heading {
+            font-size: 12px;
+            font-weight: 800;
+            color: #cbd5e1;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .war-progress-card {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.16);
+            border-radius: 9px;
+            padding: 6px 9px;
+            margin-bottom: 6px;
+        }
+
+        .war-prog-top {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .war-prog-bar {
+            width: 100%;
+            height: 6px;
+            background: #334155;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .war-prog-inner {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.15s linear;
+        }
+
+        .news-list {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+
+        .news-item {
+            font-size: 11.5px;
+            background: rgba(15, 23, 42, 0.48);
+            padding: 5px 8px;
+            border-radius: 7px;
+            color: #e2e8f0;
+            border-right: 3px solid #64748b;
+        }
+
+        .news-item.victory { border-right-color: #10b981; }
+        .news-item.alert { border-right-color: #f43f5e; }
+
+        /* WORLD CUP DOCK STYLES */
+        .wc-scoreboard {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(52, 211, 153, 0.35);
+            border-radius: 12px;
+            padding: 8px 12px;
+        }
+
+        .wc-team-box {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .wc-score-center {
+            text-align: center;
+        }
+
+        .wc-score-digits {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 18px;
+            font-weight: 900;
+            color: #34d399;
+        }
+
+        .wc-clock {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: #fbbf24;
+        }
+
+        .wc-controls-arena {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 6px 4px;
+            direction: ltr; /* Joystick on left, buttons on right */
+        }
+
+        .joystick-base {
+            position: relative;
+            width: 108px;
+            height: 108px;
+            border-radius: 50%;
+            background: rgba(15, 23, 42, 0.78);
+            border: 2px solid rgba(148, 163, 184, 0.35);
+            box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.55);
+            touch-action: none;
+            flex-shrink: 0;
+        }
+
+        .joystick-knob {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7);
+            border: 2px solid #fff;
+            top: 30px;
+            left: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+            pointer-events: none;
+        }
+
+        .fifa-buttons-diamond {
+            display: grid;
+            grid-template-columns: repeat(2, 64px);
+            grid-template-rows: repeat(2, 54px);
+            gap: 8px;
+            direction: rtl;
+        }
+
+        .fifa-btn {
+            border: none;
+            border-radius: 14px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 12px;
+            font-weight: 900;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+            transition: transform 0.08s;
+        }
+
+        .fifa-btn:active {
+            transform: scale(0.92);
+        }
+
+        .f-btn-pass { background: linear-gradient(135deg, #2563eb, #1d4ed8); border: 1px solid #93c5fd; }
+        .f-btn-shoot { background: linear-gradient(135deg, #e11d48, #be123c); border: 1px solid #fda4af; }
+        .f-btn-through { background: linear-gradient(135deg, #059669, #047857); border: 1px solid #6ee7b7; }
+        .f-btn-switch { background: linear-gradient(135deg, #d97706, #b45309); border: 1px solid #fcd34d; }
+
+        .bracket-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 6px;
+            max-height: 155px;
+            overflow-y: auto;
+        }
+
+        .bracket-match-pill {
+            background: rgba(15, 23, 42, 0.65);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 8px;
+            padding: 5px 8px;
+            font-size: 11px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bracket-match-pill.player-match {
+            border-color: #34d399;
+            background: rgba(16, 185, 129, 0.14);
+            font-weight: 800;
+        }
+
+        /* CHESS DOCK STYLES */
+        .chess-opponent-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(251, 191, 36, 0.35);
+            border-radius: 12px;
+            padding: 8px 12px;
+        }
+
+        .chess-move-log {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11.5px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 8px;
+            padding: 6px 10px;
+            max-height: 68px;
+            overflow-y: auto;
+            color: #cbd5e1;
+            direction: ltr;
+            text-align: left;
+        }
+
+        /* Toast Banner */
+        #toast-banner {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid #38bdf8;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 12.5px;
+            font-weight: 700;
+            z-index: 950;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s, transform 0.25s;
+            text-align: center;
+            max-width: 92vw;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.45);
+        }
+
+        #toast-banner.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Startup Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.92);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 12px;
+        }
+
+        .modal-box {
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 530px;
+            padding: 18px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.65);
+            max-height: 94vh;
+            overflow-y: auto;
+        }
+
+        .modal-badge {
+            display: inline-block;
+            background: rgba(56, 189, 248, 0.15);
+            color: #7dd3fc;
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-bottom: 6px;
+        }
+
+        .modal-heading {
+            font-size: 19px;
+            font-weight: 900;
+            margin-bottom: 4px;
+        }
+
+        .modal-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .select-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            color: #cbd5e1;
+        }
+
+        .mode-options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 7px;
+            margin-bottom: 12px;
+        }
+
+        .mode-opt-card {
+            background: #0f172a;
+            border: 2px solid rgba(148, 163, 184, 0.25);
+            border-radius: 12px;
+            padding: 8px;
+            cursor: pointer;
+            text-align: right;
+            transition: all 0.18s;
+        }
+
+        .mode-opt-card.selected {
+            border-color: #38bdf8;
+            background: rgba(56, 189, 248, 0.16);
+        }
+
+        .mode-opt-title {
+            font-size: 12.5px;
+            font-weight: 800;
+            margin-bottom: 2px;
+        }
+
+        .mode-opt-desc {
+            font-size: 9.8px;
+            color: var(--text-muted);
+            line-height: 1.3;
+        }
+
+        .nation-dropdown {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 12px;
+            background: #0f172a;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            outline: none;
+        }
+
+        .fixed-stats-preview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            background: rgba(15, 23, 42, 0.7);
+            padding: 7px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .swatch-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+
+        .color-opt {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            border: 2px solid transparent;
+            cursor: pointer;
+        }
+
+        .color-opt.selected {
+            border-color: #fff;
+            transform: scale(1.12);
+            box-shadow: 0 0 0 3px rgba(255,255,255,0.25);
+        }
+
+        .primary-launch-btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+            color: #fff;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14.5px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* Promotion Picker inside Chess Dock */
+        .promo-bar {
+            display: none;
+            gap: 8px;
+            justify-content: center;
+            background: rgba(245, 158, 11, 0.18);
+            border: 1px solid #f59e0b;
+            padding: 8px;
+            border-radius: 10px;
+        }
+
+        .promo-btn {
+            background: #1e293b;
+            border: 1px solid #fbbf24;
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        @media (min-width: 960px) {
+            #app-layout {
+                flex-direction: row;
+            }
+            #canvas-viewport {
+                width: 64%;
+                height: 100vh;
+                border-bottom: none;
+                border-left: 2px solid #334155;
+            }
+            #control-dock {
+                width: 36%;
+                height: 100vh;
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="toast-banner"></div>
+
+    <div id="app-layout">
+        <!-- TOP HALF (55%): Dedicated Interactive Canvas (World Map / Football Pitch / Chessboard) -->
+        <div id="canvas-viewport">
+            <canvas id="main-canvas"></canvas>
+
+            <div class="map-legend-strip" id="map-legend-strip">
+                <span class="legend-dot-item"><i class="dot-swatch" style="background:#9333EA;"></i>عظمى</span>
+                <span class="legend-dot-item"><i class="dot-swatch" style="background:#2563EB;"></i>قوي جداً</span>
+                <span class="legend-dot-item"><i class="dot-swatch" style="background:#DC2626;"></i>قوي</span>
+                <span class="legend-dot-item"><i class="dot-swatch" style="background:#16A34A;"></i>متوسط</span>
+                <span class="legend-dot-item"><i class="dot-swatch" style="background:#EAB308;"></i>ضعيف</span>
+            </div>
+
+            <div class="map-corner-controls" id="map-corner-controls">
+                <button class="map-ctrl-btn" id="zoom-in-btn" title="تكبير">+</button>
+                <button class="map-ctrl-btn" id="zoom-out-btn" title="تصغير">−</button>
+                <button class="map-ctrl-btn" id="zoom-reset-btn" title="إعادة ضبط">⌖</button>
+            </div>
+        </div>
+
+        <!-- BOTTOM HALF (45%): Context-Aware Arabic Control & Intelligence Dock -->
+        <div id="control-dock">
+
+            <!-- ================= DOCK A: GEOPOLITICAL STRATEGY (MODES 1-4) ================= -->
+            <div id="geo-dock-wrapper" style="display:flex; flex-direction:column; gap:10px;">
+                <div class="dock-card">
+                    <div class="player-top-row">
+                        <div class="player-title-group">
+                            <span class="player-flag-dot" id="hud-flag-dot"></span>
+                            <span class="player-name-lbl" id="hud-nation-name">الولايات المتحدة</span>
+                            <span class="tier-badge" id="hud-tier-badge">قوة عظمى</span>
+                            <span class="epoch-pill-badge" id="hud-epoch-badge">العصر الحالي</span>
+                        </div>
+                        <div class="sim-speed-group">
+                            <span style="font-size:11px; color:var(--text-muted); margin-left:4px;" id="hud-terr-count">الأقاليم: 1</span>
+                            <button class="speed-btn" id="btn-pause">إيقاف</button>
+                            <button class="speed-btn active" id="btn-spd-1">1x</button>
+                            <button class="speed-btn" id="btn-spd-2">2x</button>
+                            <button class="speed-btn" onclick="location.reload()">القائمة</button>
+                        </div>
+                    </div>
+
+                    <div class="stats-grid-5">
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الخزينة</div>
+                            <div class="stat-pill-val" style="color:#34d399;" id="hud-treasury">$140B</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الاقتصاد</div>
+                            <div class="stat-pill-val" style="color:#38bdf8;" id="hud-economy">99.0</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الجيش</div>
+                            <div class="stat-pill-val" style="color:#fb7185;" id="hud-military">99.0</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الموارد</div>
+                            <div class="stat-pill-val" style="color:#fbbf24;" id="hud-resources">91</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الحلفاء</div>
+                            <div class="stat-pill-val" id="hud-allies">9/10</div>
+                        </div>
+                    </div>
+
+                    <div class="alliance-strip" id="player-alliance-strip"></div>
+                    <div class="war-penalty-strip" id="war-penalty-alert">
+                        ⚠️ حالة حرب نشطة: توقف الدخل السلبي مؤقتاً مع خصم -10% من القدرة الاقتصادية حتى انتهاء الغزو
+                    </div>
+                </div>
+
+                <div class="dev-actions-row">
+                    <button class="action-dev-btn btn-econ-dev" id="btn-dev-econ">
+                        <span id="econ-btn-title">تطوير الاقتصاد (+20)</span>
+                        <span class="btn-subtext" id="econ-btn-sub">التكلفة: $60B • المدة: 60 ثانية</span>
+                    </button>
+                    <button class="action-dev-btn btn-mil-dev" id="btn-dev-mil">
+                        <span id="mil-btn-title">تعزيز الجيش (+5)</span>
+                        <span class="btn-subtext" id="mil-btn-sub">التكلفة: $55B • فوري</span>
+                    </button>
+                </div>
+
+                <div class="dock-card">
+                    <div class="target-header">
+                        <div class="target-name-wrap">
+                            <span class="target-dot" id="insp-dot"></span>
+                            <div>
+                                <div class="target-title" id="insp-name">اختر دولة من الخريطة</div>
+                                <div class="target-sovereign" id="insp-owner">اضغط على أي دولة لمعاينة موازين القوى أو إدارة المستعمرات</div>
+                            </div>
+                        </div>
+                        <span class="tier-badge" id="insp-tier">—</span>
+                    </div>
+
+                    <div class="target-stats-row">
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الاقتصاد</div>
+                            <div class="stat-pill-val" style="color:#38bdf8;" id="insp-econ">—</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الجيش</div>
+                            <div class="stat-pill-val" style="color:#fb7185;" id="insp-mil">—</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الموارد</div>
+                            <div class="stat-pill-val" style="color:#fbbf24;" id="insp-res">—</div>
+                        </div>
+                        <div class="stat-pill">
+                            <div class="stat-pill-lbl">الحلفاء</div>
+                            <div class="stat-pill-val" id="insp-allies">—</div>
+                        </div>
+                    </div>
+
+                    <div class="power-balance-box" id="power-balance-box" style="display:none;">
+                        <div class="pb-labels">
+                            <span style="color:#38bdf8;" id="pb-atk-lbl">قوتك: 0</span>
+                            <span style="color:#cbd5e1;">ميزان القوى</span>
+                            <span style="color:#fb7185;" id="pb-def-lbl">الخصم: 0</span>
+                        </div>
+                        <div class="pb-track">
+                            <div class="pb-attacker-fill" id="pb-bar-fill" style="width:50%;"></div>
+                        </div>
+                        <div class="pb-meta">
+                            <span>احتمال النصر: <strong id="pb-win-pct" style="color:#34d399;">50%</strong></span>
+                            <span>مدة الحملة: <strong id="pb-duration" style="color:#fbbf24;">60ث</strong></span>
+                        </div>
+                    </div>
+
+                    <div class="colony-panel-box" id="colony-panel-box" style="display:none;">
+                        <div class="colony-row">
+                            <span style="color:#f59e0b;">🛡️ طاقة الاستعمار: <strong id="colony-power-val">40</strong></span>
+                            <span style="color:#f43f5e;">⚡ دعم الحلفاء: <strong id="colony-support-val">0</strong> / 100</span>
+                        </div>
+                        <div class="colony-bar-track">
+                            <div class="colony-bar-fill" id="colony-support-fill" style="width:0%;"></div>
+                        </div>
+                        <div style="font-size:10.5px; color:var(--text-muted); text-align:center; margin-bottom:4px;" id="colony-status-msg">
+                            المستعمرة مستقرة تحت السيطرة.
+                        </div>
+                    </div>
+
+                    <button class="btn-action-main btn-invade-style" id="btn-primary-action" disabled>اختر دولة معادية لشن الغزو</button>
+                </div>
+
+                <div class="dock-card">
+                    <div class="section-heading">
+                        <span>الحملات العسكرية الجارية</span>
+                        <span id="active-wars-badge" style="color:#38bdf8;">0 نشطة</span>
+                    </div>
+                    <div id="active-wars-container">
+                        <div style="font-size:11.5px; color:var(--text-muted); text-align:center; padding:6px;">
+                            لا توجد حروب جارية حالياً. العالم في حالة ترقب استراتيجي.
+                        </div>
+                    </div>
+
+                    <div class="section-heading" style="margin-top:8px;">
+                        <span>نشرة الاستخبارات والتاريخ</span>
+                        <span style="color:#10b981;">مباشر</span>
+                    </div>
+                    <div class="news-list" id="news-feed"></div>
+                </div>
+            </div>
+
+            <!-- ================= DOCK B: WORLD CUP FOOTBALL TOURNAMENT (MODE 5) ================= -->
+            <div id="wc-dock-wrapper" style="display:none; flex-direction:column; gap:10px;">
+                <div class="wc-scoreboard">
+                    <div class="wc-team-box">
+                        <span class="player-flag-dot" id="wc-home-dot"></span>
+                        <div>
+                            <div id="wc-home-name">الأرجنتين</div>
+                            <div style="font-size:10px; color:#94a3b8;" id="wc-home-ovr">تقييم: 89</div>
+                        </div>
+                    </div>
+
+                    <div class="wc-score-center">
+                        <div style="font-size:10px; font-weight:800; color:#38bdf8;" id="wc-round-badge">دور الـ 32</div>
+                        <div class="wc-score-digits" id="wc-score-text">0 - 0</div>
+                        <div class="wc-clock" id="wc-clock-text">00:00</div>
+                    </div>
+
+                    <div class="wc-team-box" style="text-align:left;">
+                        <div>
+                            <div id="wc-away-name">فرنسا</div>
+                            <div style="font-size:10px; color:#94a3b8;" id="wc-away-ovr">تقييم: 89</div>
+                        </div>
+                        <span class="player-flag-dot" id="wc-away-dot"></span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:6px; justify-content:space-between; align-items:center;">
+                    <button class="speed-btn active" id="wc-toggle-ai-btn" style="flex:1; padding:7px;">🎮 الوضع: تحكم يدوي (اضغط للتبديل لمدرب AI)</button>
+                    <button class="speed-btn" id="wc-toggle-bracket-btn" style="padding:7px 12px;">🏆 جدول البطولة</button>
+                    <button class="speed-btn" onclick="location.reload()" style="padding:7px 10px;">خروج</button>
+                </div>
+
+                <!-- FIFA/PES Touch & Keyboard Controls -->
+                <div class="dock-card" id="wc-controls-panel">
+                    <div class="wc-controls-arena">
+                        <div class="joystick-base" id="wc-joystick-base">
+                            <div class="joystick-knob" id="wc-joystick-knob"></div>
+                        </div>
+                        <div class="fifa-buttons-diamond">
+                            <button class="fifa-btn f-btn-through" id="fbtn-through"><span>تمريرة بينية</span><span style="font-size:9px; opacity:0.8;">W</span></button>
+                            <button class="fifa-btn f-btn-shoot" id="fbtn-shoot"><span>تسديد قوي</span><span style="font-size:9px; opacity:0.8;">D / Space</span></button>
+                            <button class="fifa-btn f-btn-pass" id="fbtn-pass"><span>تمرير قصير</span><span style="font-size:9px; opacity:0.8;">S</span></button>
+                            <button class="fifa-btn f-btn-switch" id="fbtn-switch"><span>تبديل / ضغط</span><span style="font-size:9px; opacity:0.8;">Q</span></button>
+                        </div>
+                    </div>
+                    <div style="text-align:center; font-size:10.5px; color:var(--text-muted); margin-top:4px;" id="wc-commentary-bar">
+                        صافرة البداية! استخدم عصا التحكم أو الأسهم للحركة، و(تسديد/تمرير) لصناعة الهجمات.
+                    </div>
+                </div>
+
+                <!-- Match End / Next Round Action -->
+                <button class="btn-action-main btn-wc-style" id="wc-next-match-btn" style="display:none;">بدء المباراة التالية في البطولة</button>
+
+                <!-- Knockout Bracket Viewer -->
+                <div class="dock-card" id="wc-bracket-panel">
+                    <div class="section-heading">
+                        <span>مواجهات الأدوار الإقصائية لكأس العالم</span>
+                        <span style="color:#34d399;" id="wc-bracket-round-lbl">دور الـ 32</span>
+                    </div>
+                    <div class="bracket-grid" id="wc-bracket-grid"></div>
+                </div>
+            </div>
+
+            <!-- ================= DOCK C: 100-NATION WORLD CHESS CHAMPIONSHIP (MODE 6) ================= -->
+            <div id="chess-dock-wrapper" style="display:none; flex-direction:column; gap:10px;">
+                <div class="chess-opponent-card">
+                    <div>
+                        <div style="font-size:11px; color:#fbbf24; font-weight:800;" id="chess-stage-lbl">الجولة 1 / 100 • التصفيات التمهيدية</div>
+                        <div style="font-size:14.5px; font-weight:900;" id="chess-opp-name">خصمك: أستاذ دولي</div>
+                        <div style="font-size:11px; color:var(--text-muted);" id="chess-opp-meta">الدولة • التصنيف: 1200 ELO • المستوى: سهل جداً</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <div style="font-size:12px; font-weight:800; color:#38bdf8;" id="chess-turn-lbl">دورك (الأبيض)</div>
+                        <button class="speed-btn" onclick="location.reload()" style="margin-top:4px;">خروج</button>
+                    </div>
+                </div>
+
+                <div class="promo-bar" id="chess-promo-bar">
+                    <span style="font-size:12px; font-weight:800; align-self:center;">ترقية البيدق:</span>
+                    <button class="promo-btn" data-piece="q">وزير ♕</button>
+                    <button class="promo-btn" data-piece="r">قلعة ♖</button>
+                    <button class="promo-btn" data-piece="b">فيل ♗</button>
+                    <button class="promo-btn" data-piece="n">حصان ♘</button>
+                </div>
+
+                <div class="dock-card" style="padding:8px 10px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11.5px; margin-bottom:6px;">
+                        <span>أسراك: <strong id="chess-cap-white" style="font-size:14px;">—</strong></span>
+                        <span>أسرى الخصم: <strong id="chess-cap-black" style="font-size:14px;">—</strong></span>
+                    </div>
+                    <div class="chess-move-log" id="chess-move-log">1. بانتظار نقلة الافتتاح...</div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <button class="btn-action-main btn-chess-style" id="chess-next-opp-btn" style="display:none; grid-column: span 2;">
+                        🏆 الانتقال لمنافسة الدولة التالية (أصعب)
+                    </button>
+                    <button class="speed-btn" id="chess-undo-btn" style="padding:9px;">↩️ تراجع عن النقلة</button>
+                    <button class="speed-btn" id="chess-restart-match-btn" style="padding:9px;">🔄 إعادة المباراة الحالية</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- STARTUP CONFIGURATION MODAL (6 MODES + 32 NATIONS + CUSTOM COLOR) -->
+    <div class="modal-overlay" id="startup-modal">
+        <div class="modal-box">
+            <div class="modal-badge">نبض الجيوسياسة • النسخة الشاملة (6 أوضاع)</div>
+            <h1 class="modal-heading">اختر وضع اللعب ودولتك</h1>
+            <p class="modal-desc">
+                استمتع بـ 4 أوضاع جيوسياسية تاريخية وعالمية على الخريطة، أو ادخل غمار بطولة كأس العالم لكرة القدم أو بطولة العالم للشطرنج لـ 100 دولة!
+            </p>
+
+            <label class="select-label">1. اختر وضع اللعب (6 أوضاع متكاملة):</label>
+            <div class="mode-options-grid">
+                <div class="mode-opt-card" data-mode="ancient">
+                    <div class="mode-opt-title" style="color:#f59e0b;">🏛️ العصور القديمة</div>
+                    <div class="mode-opt-desc">إيقاع تاريخي أبطأ بنسبة 10:1، ألقاب إمبراطورية ومظهر كلاسيكي عريق.</div>
+                </div>
+                <div class="mode-opt-card" data-mode="medieval">
+                    <div class="mode-opt-title" style="color:#d97706;">⚔️ العصور الوسطى</div>
+                    <div class="mode-opt-desc">تطور إقطاعي بطيء (10:1 مقارنة بالعصر الحالي)، ممالك وحروب توسعية.</div>
+                </div>
+                <div class="mode-opt-card selected" data-mode="peaceful">
+                    <div class="mode-opt-title" style="color:#38bdf8;">🕊️ الوضع الحالي (مسالم)</div>
+                    <div class="mode-opt-desc">العصر الحديث بإيقاع واقعي وحماية كاملة لمستعمراتك عند تحصينها.</div>
+                </div>
+                <div class="mode-opt-card" data-mode="worldwar">
+                    <div class="mode-opt-title" style="color:#f43f5e;">🔥 الحرب العالمية (10 تحالفات)</div>
+                    <div class="mode-opt-desc">ينقسم العالم إلى 10 تكتلات جغرافية كبرى تتصارع للسيطرة على الكوكب.</div>
+                </div>
+                <div class="mode-opt-card" data-mode="worldcup">
+                    <div class="mode-opt-title" style="color:#34d399;">⚽ بطولة كأس العالم</div>
+                    <div class="mode-opt-desc">ملعب كرة قدم بفيزياء FIFA/PES من دور الـ 32 للنهائي (تحكم يدوي أو مدرب AI).</div>
+                </div>
+                <div class="mode-opt-card" data-mode="chess">
+                    <div class="mode-opt-title" style="color:#fbbf24;">♟️ بطولة العالم للشطرنج</div>
+                    <div class="mode-opt-desc">نافس مشاهير الشطرنج من 100 دولة بصعوبة متدرجة من السهل حتى أبطال العالم!</div>
+                </div>
+            </div>
+
+            <label class="select-label" for="playable-nation-select">2. اختر دولتك (من بين 32 دولة كبرى):</label>
+            <select id="playable-nation-select" class="nation-dropdown"></select>
+
+            <div class="fixed-stats-preview" id="startup-stats-preview">
+                <div>
+                    <div class="stat-pill-lbl" id="prev-lbl-1">الاقتصاد</div>
+                    <div class="stat-pill-val" style="color:#38bdf8;" id="prev-val-1">99</div>
+                </div>
+                <div>
+                    <div class="stat-pill-lbl" id="prev-lbl-2">الجيش</div>
+                    <div class="stat-pill-val" style="color:#fb7185;" id="prev-val-2">99</div>
+                </div>
+                <div>
+                    <div class="stat-pill-lbl" id="prev-lbl-3">الموارد</div>
+                    <div class="stat-pill-val" style="color:#fbbf24;" id="prev-val-3">91</div>
+                </div>
+                <div>
+                    <div class="stat-pill-lbl" id="prev-lbl-4">الحلفاء</div>
+                    <div class="stat-pill-val" id="prev-val-4">9/10</div>
+                </div>
+            </div>
+
+            <label class="select-label">3. اختر لون دولتك / قميص فريقك:</label>
+            <div class="swatch-grid" id="color-swatches">
+                <button type="button" class="color-opt selected" data-color="#2563EB" style="background:#2563EB;"></button>
+                <button type="button" class="color-opt" data-color="#DC2626" style="background:#DC2626;"></button>
+                <button type="button" class="color-opt" data-color="#059669" style="background:#059669;"></button>
+                <button type="button" class="color-opt" data-color="#7C3AED" style="background:#7C3AED;"></button>
+                <button type="button" class="color-opt" data-color="#D97706" style="background:#D97706;"></button>
+                <button type="button" class="color-opt" data-color="#0891B2" style="background:#0891B2;"></button>
+                <input type="color" id="custom-color-input" value="#2563EB" style="width:30px; height:30px; border:none; background:none; cursor:pointer;">
+            </div>
+
+            <button class="primary-launch-btn" id="btn-start-sim">بدء المحاكاة أو البطولة الآن</button>
+        </div>
+    </div>
+
+    <!-- End Campaign / Trophy Modal -->
+    <div class="modal-overlay" id="end-modal" style="display:none;">
+        <div class="modal-box" style="text-align:center;">
+            <div class="modal-badge" id="end-badge">نهاية البطولة</div>
+            <h2 class="modal-heading" id="end-title">انتصار تاريخي</h2>
+            <p class="modal-desc" id="end-desc">لقد حققت المجد العالمي!</p>
+            <button class="primary-launch-btn" onclick="location.reload()">العودة للقائمة الرئيسية</button>
+        </div>
+    </div>
+
+<script>
+/**
+ * ============================================================================
+ * 1. GLOBAL NATIONS DATABASE (98 REAL NATIONS: 32 PLAYABLE + 66 MINOR)
+ *    Includes Geopolitical Stats, Realistic Football Ratings, & Chess Champions
+ * ============================================================================
+ */
+const TIER_INFO = {
+    Purple: { color: '#9333EA', label: 'قوة عظمى' },
+    Blue:   { color: '#2563EB', label: 'قوي جداً' },
+    Red:    { color: '#DC2626', label: 'قوي' },
+    Green:  { color: '#16A34A', label: 'متوسط' },
+    Yellow: { color: '#EAB308', label: 'ضعيف' }
+};
+
+const EPOCH_CONFIG = {
+    ancient: {
+        label: 'العصور القديمة',
+        bodyClass: 'epoch-ancient',
+        paceMultiplier: 0.1,
+        econUpgradeGain: 2.0,
+        milUpgradeGain: 0.5,
+        titlePrefix: 'إمبراطورية ',
+        palette: { DESERT: '#E6D5B8', FOREST: '#C5D3B0', POLAR: '#E8E4D9' },
+        ocean: '#6b8e9b'
+    },
+    medieval: {
+        label: 'العصور الوسطى',
+        bodyClass: 'epoch-medieval',
+        paceMultiplier: 0.1,
+        econUpgradeGain: 2.0,
+        milUpgradeGain: 0.5,
+        titlePrefix: 'مملكة ',
+        palette: { DESERT: '#EADAC2', FOREST: '#C3D6BE', POLAR: '#ECEAE4' },
+        ocean: '#5d7b93'
+    },
+    peaceful: {
+        label: 'العصر الحالي (مسالم)',
+        bodyClass: '',
+        paceMultiplier: 1.0,
+        econUpgradeGain: 20.0,
+        milUpgradeGain: 5.0,
+        titlePrefix: '',
+        palette: { DESERT: '#F5F2E6', FOREST: '#D9F0D8', POLAR: '#F8F9FA' },
+        ocean: '#9AD3F5'
+    },
+    worldwar: {
+        label: 'الحرب العالمية (10 تحالفات)',
+        bodyClass: 'epoch-worldwar',
+        paceMultiplier: 1.0,
+        econUpgradeGain: 20.0,
+        milUpgradeGain: 5.0,
+        titlePrefix: '',
+        palette: { DESERT: '#EFECE1', FOREST: '#D2E8D1', POLAR: '#F1F5F9' },
+        ocean: '#729eb5'
+    }
+};
+
+const ALLIANCE_BLOCS = [
+    { id: 0, name: 'حلف شمال الأطلسي والغرب', color: '#2563EB' },
+    { id: 1, name: 'اتحاد أمريكا اللاتينية', color: '#16A34A' },
+    { id: 2, name: 'تحالف الكتلة الأوروبية', color: '#0284C7' },
+    { id: 3, name: 'حلف أوراسيا والشمال', color: '#4338CA' },
+    { id: 4, name: 'تحالف الشرق الأوسط والخليج', color: '#D97706' },
+    { id: 5, name: 'اتحاد شمال وشرق أفريقيا', color: '#0D9488' },
+    { id: 6, name: 'تحالف وسط وجنوب أفريقيا', color: '#CA8A04' },
+    { id: 7, name: 'حلف جنوب ووسط آسيا', color: '#EA580C' },
+    { id: 8, name: 'تحالف التنين وشرق آسيا', color: '#DC2626' },
+    { id: 9, name: 'حلف المحيط الهادئ وأوقيانوسيا', color: '#7C3AED' }
+];
+
+function geoToWorld(lon, lat) {
+    const x = ((lon + 172) / 352) * 2000;
+    const y = ((76 - lat) / 132) * 1000;
+    return [Number(x.toFixed(1)), Number(y.toFixed(1))];
+}
+
+function buildPolys(lonLatRings) {
+    return lonLatRings.map(ring => ring.map(([lon, lat]) => geoToWorld(lon, lat)));
+}
+
+function assignGeographicAlliance(clon, clat) {
+    if (clon < -30 && clat > 15) return 0;
+    if (clon < -30 && clat <= 15) return 1;
+    if (clon >= -30 && clon < 28 && clat > 36) return 2;
+    if (clon >= 28 && clon < 95 && clat > 44) return 3;
+    if (clon >= 24 && clon < 62 && clat >= 12 && clat <= 42) return 4;
+    if (clon >= -20 && clon < 52 && clat >= 0 && clat < 36) return 5;
+    if (clon >= -20 && clon < 55 && clat < 0) return 6;
+    if (clon >= 55 && clon < 96 && clat >= 5 && clat <= 44) return 7;
+    if (clon >= 96 && clon >= 18) return 8;
+    return 9;
+}
+
+// 32 Playable Major Nations + 66 Minor Real Nations (98 Total, plus 2 extra chess nations = 100 Chess Roster)
+const WORLD_NATIONS_DB = [
+    {
+        id: 'USA', name: 'الولايات المتحدة', playable: true, economy: 99, resources: 91, military: 99, allies: 9, tier: 'Purple',
+        fb: { ovr: 80, atk: 81, mid: 80, def: 79, gk: 79, kit1: '#ffffff', kit2: '#1d4ed8' },
+        chess: { gm: 'هيكارو ناكامورا', elo: 2802 },
+        biome: 'FOREST', area: 95, clat: 39, clon: -98, aiColor: '#1d4ed8', rivals: ['RUS', 'CHN', 'IRN'],
+        rings: [[[-125,49],[-95,49],[-82,45],[-67,45],[-70,41],[-76,35],[-81,25],[-84,30],[-97,26],[-105,31],[-117,32],[-124,42]],[[-166,68],[-141,69],[-141,60],[-152,58],[-162,55],[-166,61]]]
+    },
+    {
+        id: 'CHN', name: 'الصين', playable: true, economy: 98, resources: 89, military: 97, allies: 7, tier: 'Purple',
+        fb: { ovr: 72, atk: 73, mid: 72, def: 71, gk: 72, kit1: '#dc2626', kit2: '#facc15' },
+        chess: { gm: 'دينغ ليرين', elo: 2780 },
+        biome: 'FOREST', area: 96, clat: 35, clon: 103, aiColor: '#b91c1c', rivals: ['USA', 'IND', 'TWN', 'JPN'],
+        rings: [[[74,39],[88,48],[96,43],[112,45],[122,53],[134,48],[125,40],[121,35],[122,29],[114,22],[106,22],[98,25],[88,28],[78,32]]]
+    },
+    {
+        id: 'RUS', name: 'روسيا', playable: true, economy: 82, resources: 96, military: 98, allies: 6, tier: 'Purple',
+        fb: { ovr: 78, atk: 79, mid: 78, def: 77, gk: 78, kit1: '#b91c1c', kit2: '#ffffff' },
+        chess: { gm: 'إيان نيبومنياتشي', elo: 2770 },
+        biome: 'POLAR', area: 140, clat: 61, clon: 92, aiColor: '#4338ca', rivals: ['USA', 'UKR', 'POL', 'GBR', 'FRA'],
+        rings: [[[28,60],[42,67],[65,70],[105,75],[145,71],[175,66],[162,55],[141,53],[134,43],[122,53],[112,45],[88,48],[78,54],[58,51],[40,45],[32,52]]]
+    },
+    {
+        id: 'IND', name: 'الهند', playable: true, economy: 79, resources: 82, military: 92, allies: 7, tier: 'Blue',
+        fb: { ovr: 70, atk: 71, mid: 70, def: 69, gk: 70, kit1: '#2563eb', kit2: '#f97316' },
+        chess: { gm: 'جوكيش دوماراجو', elo: 2794 },
+        biome: 'FOREST', area: 68, clat: 22, clon: 79, aiColor: '#ea580c', rivals: ['PAK', 'CHN'],
+        rings: [[[68,24],[75,35],[80,31],[88,28],[96,28],[92,22],[86,20],[80,9],[76,9],[72,20]]]
+    },
+    {
+        id: 'KOR', name: 'كوريا الجنوبية', playable: true, economy: 80, resources: 32, military: 87, allies: 8, tier: 'Blue',
+        fb: { ovr: 80, atk: 83, mid: 80, def: 78, gk: 78, kit1: '#e11d48', kit2: '#0f172a' },
+        chess: { gm: 'آن وينغ', elo: 2490 },
+        biome: 'FOREST', area: 22, clat: 36, clon: 128, aiColor: '#0284c7', rivals: ['CHN'],
+        rings: [[[126,38],[129,38],[130,35],[126,34]]]
+    },
+    {
+        id: 'FRA', name: 'فرنسا', playable: true, economy: 85, resources: 60, military: 86, allies: 9, tier: 'Blue',
+        fb: { ovr: 89, atk: 91, mid: 89, def: 88, gk: 87, kit1: '#1e3a8a', kit2: '#ffffff' },
+        chess: { gm: 'علي رضا فيروزجا', elo: 2767 },
+        biome: 'FOREST', area: 34, clat: 47, clon: 2, aiColor: '#2563eb', rivals: ['RUS', 'DEU'],
+        rings: [[[-4,48],[2,51],[8,49],[7,44],[3,42],[-2,43]]]
+    },
+    {
+        id: 'JPN', name: 'اليابان', playable: true, economy: 88, resources: 35, military: 85, allies: 8, tier: 'Blue',
+        fb: { ovr: 81, atk: 82, mid: 83, def: 79, gk: 78, kit1: '#1d4ed8', kit2: '#ffffff' },
+        chess: { gm: 'يوجي موراياما', elo: 2510 },
+        biome: 'FOREST', area: 28, clat: 36, clon: 138, aiColor: '#e11d48', rivals: ['CHN', 'RUS'],
+        rings: [[[130,31],[136,34],[141,38],[145,44],[140,44],[136,37],[131,34]]]
+    },
+    {
+        id: 'GBR', name: 'المملكة المتحدة', playable: true, economy: 86, resources: 54, military: 84, allies: 9, tier: 'Blue',
+        fb: { ovr: 87, atk: 89, mid: 88, def: 84, gk: 84, kit1: '#ffffff', kit2: '#1e3a8a' },
+        chess: { gm: 'مايكل آدامز', elo: 2685 },
+        biome: 'FOREST', area: 26, clat: 54, clon: -2, aiColor: '#1e40af', rivals: ['RUS', 'ARG'],
+        rings: [[[-5,50],[1,51],[0,55],[-4,58],[-6,55]],[[-10,52],[-6,52],[-6,55],[-10,54]]]
+    },
+    {
+        id: 'TUR', name: 'تركيا', playable: true, economy: 70, resources: 62, military: 83, allies: 6, tier: 'Red',
+        fb: { ovr: 79, atk: 80, mid: 81, def: 77, gk: 78, kit1: '#dc2626', kit2: '#ffffff' },
+        chess: { gm: 'مصطفى يلماز', elo: 2640 },
+        biome: 'DESERT', area: 38, clat: 39, clon: 35, aiColor: '#dc2626', rivals: ['GRC', 'SYR', 'IRQ'],
+        rings: [[[26,41],[36,42],[44,41],[44,37],[36,36],[27,37]]]
+    },
+    {
+        id: 'PAK', name: 'باكستان', playable: true, economy: 41, resources: 57, military: 81, allies: 6, tier: 'Red',
+        fb: { ovr: 66, atk: 67, mid: 66, def: 65, gk: 66, kit1: '#15803d', kit2: '#ffffff' },
+        chess: { gm: 'محمود لودهي', elo: 2380 },
+        biome: 'DESERT', area: 36, clat: 30, clon: 69, aiColor: '#15803d', rivals: ['IND', 'AFG'],
+        rings: [[[61,25],[62,30],[71,36],[75,35],[71,28],[67,24]]]
+    },
+    {
+        id: 'ITA', name: 'إيطاليا', playable: true, economy: 81, resources: 48, military: 80, allies: 8, tier: 'Red',
+        fb: { ovr: 85, atk: 84, mid: 86, def: 85, gk: 88, kit1: '#2563eb', kit2: '#ffffff' },
+        chess: { gm: 'دانييل فوكاتورو', elo: 2615 },
+        biome: 'FOREST', area: 28, clat: 43, clon: 12, aiColor: '#0d9488', rivals: ['FRA'],
+        rings: [[[7,44],[13,46],[18,41],[16,38],[12,41],[9,43]]]
+    },
+    {
+        id: 'BRA', name: 'البرازيل', playable: true, economy: 74, resources: 92, military: 78, allies: 5, tier: 'Red',
+        fb: { ovr: 88, atk: 91, mid: 87, def: 86, gk: 89, kit1: '#facc15', kit2: '#1d4ed8' },
+        chess: { gm: 'لويس باولو سوبي', elo: 2610 },
+        biome: 'FOREST', area: 88, clat: -10, clon: -52, aiColor: '#16a34a', rivals: ['ARG', 'VEN'],
+        rings: [[[-70,-4],[-60,4],[-50,1],[-35,-6],[-39,-18],[-48,-28],[-56,-30],[-58,-18],[-72,-10]]]
+    },
+    {
+        id: 'DEU', name: 'ألمانيا', playable: true, economy: 92, resources: 50, military: 77, allies: 8, tier: 'Red',
+        fb: { ovr: 86, atk: 86, mid: 88, def: 85, gk: 87, kit1: '#ffffff', kit2: '#0f172a' },
+        chess: { gm: 'فنسنت كيمر', elo: 2738 },
+        biome: 'FOREST', area: 30, clat: 51, clon: 10, aiColor: '#334155', rivals: ['RUS', 'POL'],
+        rings: [[[6,51],[10,54],[14,54],[15,48],[8,47]]]
+    },
+    {
+        id: 'IDN', name: 'إندونيسيا', playable: true, economy: 69, resources: 84, military: 76, allies: 5, tier: 'Red',
+        fb: { ovr: 71, atk: 72, mid: 71, def: 70, gk: 71, kit1: '#dc2626', kit2: '#ffffff' },
+        chess: { gm: 'سوسانتو ميغارانتو', elo: 2540 },
+        biome: 'FOREST', area: 52, clat: -2, clon: 116, aiColor: '#be123c', rivals: ['AUS', 'MYS'],
+        rings: [[[96,4],[105,-5],[103,-6],[95,2]],[[106,-6],[115,-8],[114,-7],[106,-5]],[[109,1],[118,3],[117,-4],[110,-3]],[[120,-1],[125,1],[123,-5],[119,-5]],[[131,-2],[141,-3],[141,-8],[132,-6]]]
+    },
+    {
+        id: 'IRN', name: 'إيران', playable: true, economy: 44, resources: 88, military: 75, allies: 4, tier: 'Red',
+        fb: { ovr: 76, atk: 79, mid: 75, def: 74, gk: 76, kit1: '#ffffff', kit2: '#dc2626' },
+        chess: { gm: 'برهام مقصودلو', elo: 2732 },
+        biome: 'DESERT', area: 48, clat: 33, clon: 54, aiColor: '#047857', rivals: ['SAU', 'IRQ', 'USA'],
+        rings: [[[44,39],[54,38],[61,36],[61,25],[56,27],[48,30],[45,35]]]
+    },
+    {
+        id: 'AUS', name: 'أستراليا', playable: true, economy: 76, resources: 94, military: 74, allies: 8, tier: 'Red',
+        fb: { ovr: 77, atk: 76, mid: 77, def: 77, gk: 78, kit1: '#eab308', kit2: '#15803d' },
+        chess: { gm: 'أنطون سميرنوف', elo: 2610 },
+        biome: 'DESERT', area: 78, clat: -25, clon: 134, aiColor: '#0369a1', rivals: ['IDN'],
+        rings: [[[114,-22],[128,-14],[142,-11],[153,-28],[147,-38],[131,-32],[115,-34]]]
+    },
+    {
+        id: 'EGY', name: 'مصر', playable: true, economy: 49, resources: 61, military: 73, allies: 6, tier: 'Green',
+        fb: { ovr: 79, atk: 84, mid: 78, def: 76, gk: 79, kit1: '#dc2626', kit2: '#ffffff' },
+        chess: { gm: 'باسم أمين', elo: 2680 },
+        biome: 'DESERT', area: 36, clat: 27, clon: 30, aiColor: '#b45309', rivals: ['LBY', 'SDN', 'ETH'],
+        rings: [[[25,31],[34,31],[36,22],[25,22]]]
+    },
+    {
+        id: 'ESP', name: 'إسبانيا', playable: true, economy: 72, resources: 47, military: 71, allies: 8, tier: 'Green',
+        fb: { ovr: 88, atk: 88, mid: 90, def: 86, gk: 86, kit1: '#dc2626', kit2: '#1e3a8a' },
+        chess: { gm: 'أليكسي شيروف', elo: 2665 },
+        biome: 'FOREST', area: 30, clat: 40, clon: -4, aiColor: '#ca8a04', rivals: ['MAR', 'PRT'],
+        rings: [[[-9,43],[3,42],[0,37],[-6,36],[-8,41]]]
+    },
+    {
+        id: 'POL', name: 'بولندا', playable: true, economy: 67, resources: 53, military: 70, allies: 8, tier: 'Green',
+        fb: { ovr: 79, atk: 83, mid: 78, def: 77, gk: 81, kit1: '#ffffff', kit2: '#dc2626' },
+        chess: { gm: 'يان كريستوف دودا', elo: 2740 },
+        biome: 'FOREST', area: 28, clat: 52, clon: 19, aiColor: '#e11d48', rivals: ['RUS', 'BLR'],
+        rings: [[[14,54],[23,54],[24,49],[15,50]]]
+    },
+    {
+        id: 'VNM', name: 'فيتنام', playable: true, economy: 52, resources: 65, military: 69, allies: 5, tier: 'Green',
+        fb: { ovr: 71, atk: 72, mid: 71, def: 70, gk: 70, kit1: '#dc2626', kit2: '#facc15' },
+        chess: { gm: 'لي كوانغ ليم', elo: 2735 },
+        biome: 'FOREST', area: 26, clat: 16, clon: 107, aiColor: '#dc2626', rivals: ['CHN', 'KHM'],
+        rings: [[[103,22],[108,21],[109,12],[105,9],[104,17]]]
+    },
+    {
+        id: 'SAU', name: 'السعودية', playable: true, economy: 75, resources: 95, military: 68, allies: 7, tier: 'Green',
+        fb: { ovr: 76, atk: 77, mid: 76, def: 75, gk: 76, kit1: '#15803d', kit2: '#ffffff' },
+        chess: { gm: 'أحمد الرحيلي', elo: 2350 },
+        biome: 'DESERT', area: 52, clat: 24, clon: 45, aiColor: '#15803d', rivals: ['IRN', 'YEM', 'IRQ'],
+        rings: [[[35,29],[42,31],[49,29],[55,23],[51,18],[43,17],[38,22]]]
+    },
+    {
+        id: 'TWN', name: 'تايوان', playable: true, economy: 73, resources: 27, military: 67, allies: 8, tier: 'Green',
+        fb: { ovr: 68, atk: 68, mid: 68, def: 67, gk: 68, kit1: '#2563eb', kit2: '#ffffff' },
+        chess: { gm: 'ريموند سونغ', elo: 2440 },
+        biome: 'FOREST', area: 16, clat: 23.5, clon: 121, aiColor: '#2563eb', rivals: ['CHN'],
+        rings: [[[120,25],[122,25],[122,22],[120,22]]]
+    },
+    {
+        id: 'DZA', name: 'الجزائر', playable: true, economy: 45, resources: 79, military: 66, allies: 4, tier: 'Green',
+        fb: { ovr: 79, atk: 81, mid: 79, def: 77, gk: 77, kit1: '#ffffff', kit2: '#16a34a' },
+        chess: { gm: 'بلال بلحسن', elo: 2545 },
+        biome: 'DESERT', area: 54, clat: 28, clon: 3, aiColor: '#059669', rivals: ['MAR', 'LBY'],
+        rings: [[[-2,35],[8,36],[10,24],[3,19],[-8,26]]]
+    },
+    {
+        id: 'CAN', name: 'كندا', playable: true, economy: 78, resources: 95, military: 65, allies: 9, tier: 'Green',
+        fb: { ovr: 78, atk: 81, mid: 78, def: 75, gk: 76, kit1: '#dc2626', kit2: '#ffffff' },
+        chess: { gm: 'إريك هانسن', elo: 2610 },
+        biome: 'POLAR', area: 92, clat: 58, clon: -106, aiColor: '#dc2626', rivals: ['RUS'],
+        rings: [[[-141,69],[-110,73],[-82,70],[-62,62],[-56,52],[-67,45],[-82,45],[-95,49],[-125,49],[-138,59]]]
+    },
+    {
+        id: 'ARG', name: 'الأرجنتين', playable: true, economy: 55, resources: 81, military: 63, allies: 5, tier: 'Green',
+        fb: { ovr: 89, atk: 91, mid: 89, def: 87, gk: 88, kit1: '#38bdf8', kit2: '#ffffff' },
+        chess: { gm: 'فاوستينو أورو', elo: 2520 },
+        biome: 'FOREST', area: 58, clat: -35, clon: -64, aiColor: '#0284c7', rivals: ['BRA', 'CHL', 'GBR'],
+        rings: [[[-66,-22],[-56,-27],[-57,-38],[-66,-54],[-71,-52],[-69,-32]]]
+    },
+    {
+        id: 'MEX', name: 'المكسيك', playable: true, economy: 71, resources: 76, military: 61, allies: 6, tier: 'Green',
+        fb: { ovr: 79, atk: 80, mid: 79, def: 78, gk: 80, kit1: '#15803d', kit2: '#ffffff' },
+        chess: { gm: 'جيلبرتو هيرنانديز', elo: 2560 },
+        biome: 'FOREST', area: 44, clat: 23, clon: -102, aiColor: '#047857', rivals: ['USA', 'GTM'],
+        rings: [[[-117,32],[-105,31],[-97,26],[-96,19],[-87,21],[-92,15],[-104,19],[-112,28]]]
+    },
+    {
+        id: 'ARE', name: 'الإمارات', playable: true, economy: 68, resources: 77, military: 60, allies: 7, tier: 'Green',
+        fb: { ovr: 74, atk: 75, mid: 74, def: 73, gk: 74, kit1: '#ffffff', kit2: '#dc2626' },
+        chess: { gm: 'سالم صالح', elo: 2660 },
+        biome: 'DESERT', area: 18, clat: 24, clon: 54, aiColor: '#0d9488', rivals: ['IRN'],
+        rings: [[[51,24],[56,26],[56,23],[52,23]]]
+    },
+    {
+        id: 'ZAF', name: 'جنوب أفريقيا', playable: true, economy: 51, resources: 85, military: 58, allies: 5, tier: 'Green',
+        fb: { ovr: 74, atk: 75, mid: 74, def: 73, gk: 75, kit1: '#facc15', kit2: '#15803d' },
+        chess: { gm: 'كيني سولومون', elo: 2420 },
+        biome: 'FOREST', area: 42, clat: -30, clon: 24, aiColor: '#ca8a04', rivals: ['NAM', 'ZWE'],
+        rings: [[[17,-28],[29,-22],[32,-28],[26,-34],[18,-34]]]
+    },
+    {
+        id: 'MAR', name: 'المغرب', playable: true, economy: 43, resources: 59, military: 55, allies: 6, tier: 'Yellow',
+        fb: { ovr: 82, atk: 82, mid: 82, def: 83, gk: 85, kit1: '#dc2626', kit2: '#15803d' },
+        chess: { gm: 'هشام الحمدوشي', elo: 2580 },
+        biome: 'DESERT', area: 28, clat: 32, clon: -6, aiColor: '#b91c1c', rivals: ['DZA', 'ESP'],
+        rings: [[[-6,36],[-2,35],[-8,26],[-13,27],[-10,32]]]
+    },
+    {
+        id: 'IRQ', name: 'العراق', playable: true, economy: 40, resources: 87, military: 53, allies: 4, tier: 'Yellow',
+        fb: { ovr: 75, atk: 76, mid: 75, def: 74, gk: 75, kit1: '#15803d', kit2: '#ffffff' },
+        chess: { gm: 'أحمد عبد الستار', elo: 2410 },
+        biome: 'DESERT', area: 28, clat: 33, clon: 43, aiColor: '#475569', rivals: ['IRN', 'SAU', 'TUR'],
+        rings: [[[39,33],[44,37],[48,30],[42,31]]]
+    },
+    {
+        id: 'NGA', name: 'نيجيريا', playable: true, economy: 47, resources: 83, military: 51, allies: 4, tier: 'Yellow',
+        fb: { ovr: 79, atk: 84, mid: 78, def: 76, gk: 75, kit1: '#16a34a', kit2: '#ffffff' },
+        chess: { gm: 'توندي أونوكويا', elo: 2340 },
+        biome: 'FOREST', area: 34, clat: 9, clon: 8, aiColor: '#16a34a', rivals: ['CMR', 'NER'],
+        rings: [[[3,13],[14,13],[13,5],[4,5]]]
+    },
+    {
+        id: 'UKR', name: 'أوكرانيا', playable: true, economy: 30, resources: 50, military: 64, allies: 8, tier: 'Yellow',
+        fb: { ovr: 79, atk: 80, mid: 80, def: 78, gk: 80, kit1: '#facc15', kit2: '#2563eb' },
+        chess: { gm: 'فاسيلي إيفانتشوك', elo: 2675 },
+        biome: 'FOREST', area: 36, clat: 49, clon: 31, aiColor: '#eab308', rivals: ['RUS', 'BLR'],
+        rings: [[[23,51],[32,52],[40,48],[35,45],[29,46],[24,49]]]
+    },
+
+    // 66 MINOR REAL NATIONS (With Chess Champions & Map Polygons)
+    { id: 'GRL', name: 'غرينلاند', playable: false, economy: 28, resources: 72, military: 25, allies: 7, tier: 'Yellow', chess: { gm: 'كيم نيلسن', elo: 2150 }, biome: 'POLAR', area: 65, clat: 72, clon: -42, aiColor: '#64748b', rivals: [], rings: [[[-58,60],[-43,60],[-20,70],[-28,76],[-55,75]]] },
+    { id: 'CUB', name: 'كوبا', playable: false, economy: 32, resources: 45, military: 48, allies: 4, tier: 'Yellow', chess: { gm: 'خوسيه راؤول كابابلانكا', elo: 2720 }, biome: 'FOREST', area: 18, clat: 22, clon: -79, aiColor: '#dc2626', rivals: ['USA'], rings: [[[-85,22],[-75,20],[-76,22],[-84,23]]] },
+    { id: 'GTM', name: 'غواتيمالا', playable: false, economy: 31, resources: 42, military: 36, allies: 5, tier: 'Yellow', chess: { gm: 'كارلوس خواريز', elo: 2390 }, biome: 'FOREST', area: 20, clat: 15, clon: -90, aiColor: '#0284c7', rivals: ['MEX'], rings: [[[-92,15],[-87,16],[-84,10],[-78,8],[-82,9],[-89,13]]] },
+    { id: 'COL', name: 'كولومبيا', playable: false, economy: 48, resources: 74, military: 57, allies: 6, tier: 'Green', chess: { gm: 'خايمي كوارتاس', elo: 2530 }, biome: 'FOREST', area: 36, clat: 4, clon: -73, aiColor: '#eab308', rivals: ['VEN'], rings: [[[-78,8],[-71,12],[-68,2],[-75,-1],[-78,2]]] },
+    { id: 'VEN', name: 'فنزويلا', playable: false, economy: 34, resources: 89, military: 54, allies: 4, tier: 'Yellow', chess: { gm: 'إدواردو إيتوريزاغا', elo: 2630 }, biome: 'FOREST', area: 34, clat: 7, clon: -65, aiColor: '#b91c1c', rivals: ['COL', 'BRA'], rings: [[[-71,12],[-60,8],[-60,4],[-68,2]]] },
+    { id: 'PER', name: 'بيرو', playable: false, economy: 44, resources: 78, military: 52, allies: 5, tier: 'Yellow', chess: { gm: 'خوليو غراندا', elo: 2645 }, biome: 'FOREST', area: 40, clat: -10, clon: -75, aiColor: '#dc2626', rivals: ['CHL'], rings: [[[-80,-3],[-70,-4],[-70,-17],[-76,-15]]] },
+    { id: 'BOL', name: 'بوليفيا', playable: false, economy: 32, resources: 76, military: 42, allies: 4, tier: 'Yellow', chess: { gm: 'أوزفالدو زامبرانا', elo: 2495 }, biome: 'FOREST', area: 36, clat: -17, clon: -64, aiColor: '#15803d', rivals: ['CHL'], rings: [[[-70,-11],[-58,-18],[-62,-22],[-69,-22]]] },
+    { id: 'CHL', name: 'تشيلي', playable: false, economy: 54, resources: 82, military: 59, allies: 6, tier: 'Green', chess: { gm: 'كريستوبال هنريكيز', elo: 2620 }, biome: 'FOREST', area: 32, clat: -33, clon: -71, aiColor: '#1d4ed8', rivals: ['PER', 'ARG'], rings: [[[-70,-18],[-69,-32],[-71,-52],[-74,-52],[-72,-30]]] },
+    { id: 'ISL', name: 'أيسلندا', playable: false, economy: 46, resources: 52, military: 22, allies: 8, tier: 'Yellow', chess: { gm: 'يوهان هيارتارسون', elo: 2570 }, biome: 'POLAR', area: 18, clat: 65, clon: -18, aiColor: '#0284c7', rivals: [], rings: [[[-24,64],[-14,64],[-14,66],[-24,66]]] },
+    { id: 'NOR', name: 'النرويج', playable: false, economy: 76, resources: 88, military: 61, allies: 9, tier: 'Green', chess: { gm: 'ماغنوس كارلسن', elo: 2832 }, biome: 'POLAR', area: 30, clat: 62, clon: 9, aiColor: '#1d4ed8', rivals: ['RUS'], rings: [[[5,59],[11,59],[18,68],[28,70],[25,71],[12,67],[5,62]]] },
+    { id: 'SWE', name: 'السويد', playable: false, economy: 74, resources: 72, military: 63, allies: 9, tier: 'Green', chess: { gm: 'نيلز غراندليوس', elo: 2665 }, biome: 'POLAR', area: 32, clat: 62, clon: 16, aiColor: '#eab308', rivals: ['RUS'], rings: [[[11,59],[18,68],[24,66],[19,59],[14,56]]] },
+    { id: 'FIN', name: 'فنلندا', playable: false, economy: 66, resources: 64, military: 62, allies: 9, tier: 'Green', chess: { gm: 'تومي نيبك', elo: 2545 }, biome: 'POLAR', area: 28, clat: 63, clon: 26, aiColor: '#0369a1', rivals: ['RUS'], rings: [[[21,61],[28,70],[31,65],[28,60],[22,60]]] },
+    { id: 'PRT', name: 'البرتغال', playable: false, economy: 56, resources: 41, military: 53, allies: 8, tier: 'Yellow', chess: { gm: 'خورخي فيتيري', elo: 2480 }, biome: 'FOREST', area: 18, clat: 39.5, clon: -8, aiColor: '#15803d', rivals: ['ESP'], rings: [[[-9,42],[-7,42],[-7,37],[-9,37]]] },
+    { id: 'BLR', name: 'بيلاروسيا', playable: false, economy: 38, resources: 46, military: 56, allies: 5, tier: 'Yellow', chess: { gm: 'فلاديسلاف كوفاليف', elo: 2645 }, biome: 'FOREST', area: 24, clat: 53.5, clon: 28, aiColor: '#047857', rivals: ['POL', 'UKR'], rings: [[[24,54],[32,55],[32,52],[24,52]]] },
+    { id: 'ROU', name: 'رومانيا', playable: false, economy: 52, resources: 55, military: 58, allies: 8, tier: 'Green', chess: { gm: 'بوغدان دانيال دياك', elo: 2690 }, biome: 'FOREST', area: 26, clat: 46, clon: 25, aiColor: '#ca8a04', rivals: [], rings: [[[21,48],[29,46],[28,44],[21,44]]] },
+    { id: 'GRC', name: 'اليونان', playable: false, economy: 48, resources: 44, military: 62, allies: 8, tier: 'Green', chess: { gm: 'نيكولاس ثيودورو', elo: 2625 }, biome: 'FOREST', area: 22, clat: 39.5, clon: 22, aiColor: '#2563eb', rivals: ['TUR'], rings: [[[20,41],[26,41],[24,37],[21,37]]] },
+    { id: 'CZE', name: 'التشيك والمجر', playable: false, economy: 61, resources: 49, military: 56, allies: 8, tier: 'Green', chess: { gm: 'ريتشارد رابورت', elo: 2745 }, biome: 'FOREST', area: 24, clat: 48.5, clon: 17, aiColor: '#be123c', rivals: ['ROU'], rings: [[[13,50],[22,49],[21,46],[14,47]]] },
+    { id: 'SRB', name: 'البلقان', playable: false, economy: 42, resources: 47, military: 52, allies: 6, tier: 'Yellow', chess: { gm: 'ألكسندر إينجيتش', elo: 2635 }, biome: 'FOREST', area: 22, clat: 43.5, clon: 20, aiColor: '#4338ca', rivals: ['GRC'], rings: [[[14,46],[22,45],[22,41],[16,42]]] },
+    { id: 'TUN', name: 'تونس', playable: false, economy: 36, resources: 48, military: 46, allies: 6, tier: 'Yellow', chess: { gm: 'سليم بوعزيز', elo: 2460 }, biome: 'DESERT', area: 18, clat: 34, clon: 9.5, aiColor: '#dc2626', rivals: ['LBY'], rings: [[[8,37],[11,36],[11,32],[8,32]]] },
+    { id: 'LBY', name: 'ليبيا', playable: false, economy: 38, resources: 84, military: 49, allies: 4, tier: 'Yellow', chess: { gm: 'يوسف الحصادي', elo: 2310 }, biome: 'DESERT', area: 44, clat: 27, clon: 17, aiColor: '#16a34a', rivals: ['EGY', 'DZA'], rings: [[[10,33],[25,31],[25,20],[12,22]]] },
+    { id: 'SDN', name: 'السودان', playable: false, economy: 31, resources: 68, military: 52, allies: 4, tier: 'Yellow', chess: { gm: 'عمر التوم', elo: 2260 }, biome: 'DESERT', area: 44, clat: 16, clon: 30, aiColor: '#0284c7', rivals: ['EGY', 'ETH'], rings: [[[22,22],[37,22],[36,10],[24,10]]] },
+    { id: 'SYR', name: 'سوريا', playable: false, economy: 26, resources: 49, military: 48, allies: 4, tier: 'Yellow', chess: { gm: 'طلال حلواني', elo: 2370 }, biome: 'DESERT', area: 20, clat: 35, clon: 38, aiColor: '#b91c1c', rivals: ['TUR', 'IRQ'], rings: [[[36,36],[42,37],[40,33],[36,33]]] },
+    { id: 'JOR', name: 'الأردن وفلسطين', playable: false, economy: 41, resources: 38, military: 54, allies: 7, tier: 'Yellow', chess: { gm: 'سامي السفاريني', elo: 2380 }, biome: 'DESERT', area: 16, clat: 31, clon: 36, aiColor: '#047857', rivals: ['SYR'], rings: [[[34,33],[39,33],[38,29],[34,30]]] },
+    { id: 'YEM', name: 'اليمن', playable: false, economy: 24, resources: 52, military: 47, allies: 3, tier: 'Yellow', chess: { gm: 'بشير القديمي', elo: 2430 }, biome: 'DESERT', area: 26, clat: 15.5, clon: 47, aiColor: '#dc2626', rivals: ['SAU', 'OMN'], rings: [[[43,17],[52,18],[52,15],[44,13]]] },
+    { id: 'OMN', name: 'عُمان', playable: false, economy: 52, resources: 74, military: 51, allies: 7, tier: 'Yellow', chess: { gm: 'سالم المشيخي', elo: 2290 }, biome: 'DESERT', area: 22, clat: 21, clon: 56, aiColor: '#b91c1c', rivals: ['YEM'], rings: [[[52,18],[56,23],[59,22],[54,17]]] },
+    { id: 'MRT', name: 'موريتانيا', playable: false, economy: 27, resources: 62, military: 38, allies: 4, tier: 'Yellow', chess: { gm: 'سيدي محمد', elo: 2180 }, biome: 'DESERT', area: 32, clat: 20, clon: -11, aiColor: '#15803d', rivals: ['MLI'], rings: [[[-16,21],[-8,26],[-6,16],[-16,16]]] },
+    { id: 'MLI', name: 'مالي', playable: false, economy: 26, resources: 64, military: 42, allies: 4, tier: 'Yellow', chess: { gm: 'أمادو تراوري', elo: 2210 }, biome: 'DESERT', area: 36, clat: 17, clon: -3, aiColor: '#eab308', rivals: ['DZA', 'NER'], rings: [[[-8,25],[3,19],[2,12],[-11,13]]] },
+    { id: 'NER', name: 'النيجر', playable: false, economy: 24, resources: 69, military: 39, allies: 4, tier: 'Yellow', chess: { gm: 'إبراهيم موسى', elo: 2140 }, biome: 'DESERT', area: 36, clat: 17, clon: 9, aiColor: '#ea580c', rivals: ['NGA', 'MLI'], rings: [[[2,19],[14,22],[14,13],[2,13]]] },
+    { id: 'TCD', name: 'تشاد', playable: false, economy: 25, resources: 61, military: 44, allies: 4, tier: 'Yellow', chess: { gm: 'حسن إدريس', elo: 2160 }, biome: 'DESERT', area: 36, clat: 15, clon: 18, aiColor: '#1d4ed8', rivals: ['LBY', 'SDN'], rings: [[[14,22],[23,21],[23,9],[15,9]]] },
+    { id: 'ETH', name: 'إثيوبيا', playable: false, economy: 39, resources: 58, military: 56, allies: 5, tier: 'Green', chess: { gm: 'تاديسي هايليه', elo: 2280 }, biome: 'FOREST', area: 34, clat: 9, clon: 39, aiColor: '#16a34a', rivals: ['EGY', 'SDN', 'SOM'], rings: [[[34,14],[43,12],[43,5],[35,5]]] },
+    { id: 'SOM', name: 'الصومال', playable: false, economy: 21, resources: 46, military: 36, allies: 3, tier: 'Yellow', chess: { gm: 'عبدي فرح', elo: 2190 }, biome: 'DESERT', area: 24, clat: 6, clon: 46, aiColor: '#0284c7', rivals: ['ETH', 'KEN'], rings: [[[43,12],[51,11],[43,0],[41,4]]] },
+    { id: 'KEN', name: 'كينيا وأوغندا', playable: false, economy: 41, resources: 54, military: 49, allies: 6, tier: 'Yellow', chess: { gm: 'آرثر سيجوانيا', elo: 2360 }, biome: 'FOREST', area: 28, clat: 1, clon: 36, aiColor: '#b91c1c', rivals: ['SOM', 'TZA'], rings: [[[31,4],[41,4],[40,-4],[31,-2]]] },
+    { id: 'TZA', name: 'تنزانيا', playable: false, economy: 37, resources: 63, military: 45, allies: 5, tier: 'Yellow', chess: { gm: 'يوسف موانغو', elo: 2220 }, biome: 'FOREST', area: 30, clat: -6, clon: 35, aiColor: '#0d9488', rivals: ['KEN'], rings: [[[30,-2],[40,-4],[39,-11],[31,-10]]] },
+    { id: 'COD', name: 'الكونغو الديمقراطية', playable: false, economy: 33, resources: 91, military: 47, allies: 4, tier: 'Yellow', chess: { gm: 'مارسيل كابونغو', elo: 2240 }, biome: 'FOREST', area: 52, clat: -3, clon: 23, aiColor: '#2563eb', rivals: ['AGO'], rings: [[[14,4],[29,4],[30,-11],[15,-9]]] },
+    { id: 'CMR', name: 'الكاميرون والغابون', playable: false, economy: 38, resources: 72, military: 43, allies: 5, tier: 'Yellow', chess: { gm: 'صموئيل إيتو الشطرنجي', elo: 2270 }, biome: 'FOREST', area: 28, clat: 3, clon: 12, aiColor: '#059669', rivals: ['NGA'], rings: [[[10,11],[16,9],[15,-3],[9,-2]]] },
+    { id: 'GHA', name: 'ساحل العاج وغانا', playable: false, economy: 43, resources: 68, military: 44, allies: 6, tier: 'Yellow', chess: { gm: 'فرانسيس أنكومah', elo: 2310 }, biome: 'FOREST', area: 28, clat: 8, clon: -5, aiColor: '#d97706', rivals: ['NGA'], rings: [[[-14,14],[-2,12],[2,6],[-12,6]]] },
+    { id: 'AGO', name: 'أنغولا', playable: false, economy: 39, resources: 81, military: 48, allies: 4, tier: 'Yellow', chess: { gm: 'ديفيد سيلفا', elo: 2330 }, biome: 'FOREST', area: 36, clat: -12, clon: 17, aiColor: '#dc2626', rivals: ['COD', 'NAM'], rings: [[[13,-7],[23,-8],[22,-17],[13,-17]]] },
+    { id: 'NAM', name: 'ناميبيا وبوتسوانا', playable: false, economy: 42, resources: 77, military: 41, allies: 6, tier: 'Yellow', chess: { gm: 'بروفيدنس أوتسيل', elo: 2290 }, biome: 'DESERT', area: 36, clat: -22, clon: 21, aiColor: '#0369a1', rivals: ['ZAF'], rings: [[[13,-17],[26,-18],[27,-26],[16,-28]]] },
+    { id: 'ZWE', name: 'موزمبيق وزيمبابوي', playable: false, economy: 34, resources: 65, military: 43, allies: 5, tier: 'Yellow', chess: { gm: 'رودويل ماكوتو', elo: 2410 }, biome: 'FOREST', area: 34, clat: -17, clon: 33, aiColor: '#15803d', rivals: ['ZAF'], rings: [[[26,-12],[39,-12],[35,-25],[27,-22]]] },
+    { id: 'MDG', name: 'مدغشقر', playable: false, economy: 28, resources: 56, military: 34, allies: 5, tier: 'Yellow', chess: { gm: 'فيفيان راكوتو', elo: 2340 }, biome: 'FOREST', area: 22, clat: -19, clon: 46.5, aiColor: '#e11d48', rivals: [], rings: [[[44,-13],[50,-15],[48,-25],[44,-24]]] },
+    { id: 'KAZ', name: 'كازاخستان', playable: false, economy: 56, resources: 89, military: 59, allies: 6, tier: 'Green', chess: { gm: 'رينات جوماباييف', elo: 2630 }, biome: 'DESERT', area: 62, clat: 48, clon: 67, aiColor: '#0284c7', rivals: ['UZB', 'RUS'], rings: [[[51,51],[78,54],[86,49],[80,42],[53,42]]] },
+    { id: 'UZB', name: 'أوزبكستان', playable: false, economy: 44, resources: 78, military: 52, allies: 5, tier: 'Yellow', chess: { gm: 'نوديربيك عبد الستاروف', elo: 2777 }, biome: 'DESERT', area: 36, clat: 40, clon: 61, aiColor: '#0d9488', rivals: ['KAZ', 'AFG'], rings: [[[53,42],[72,42],[68,37],[54,38]]] },
+    { id: 'AFG', name: 'أفغانستان', playable: false, economy: 22, resources: 71, military: 51, allies: 3, tier: 'Yellow', chess: { gm: 'خير الدين أميني', elo: 2250 }, biome: 'DESERT', area: 28, clat: 34, clon: 66, aiColor: '#475569', rivals: ['PAK', 'IRN'], rings: [[[61,36],[71,36],[69,30],[61,30]]] },
+    { id: 'MNG', name: 'منغوليا', playable: false, economy: 31, resources: 79, military: 41, allies: 5, tier: 'Yellow', chess: { gm: 'بيلغون باتشور', elo: 2490 }, biome: 'DESERT', area: 44, clat: 46, clon: 103, aiColor: '#2563eb', rivals: ['CHN'], rings: [[[88,48],[118,49],[112,43],[96,43]]] },
+    { id: 'MMR', name: 'ميانمار', playable: false, economy: 33, resources: 64, military: 53, allies: 4, tier: 'Yellow', chess: { gm: 'وين زاو تون', elo: 2420 }, biome: 'FOREST', area: 28, clat: 21, clon: 96, aiColor: '#ca8a04', rivals: ['THA', 'IND'], rings: [[[93,26],[100,22],[99,13],[94,16]]] },
+    { id: 'THA', name: 'تايلاند', playable: false, economy: 62, resources: 61, military: 61, allies: 7, tier: 'Green', chess: { gm: 'ثانادون كايو', elo: 2390 }, biome: 'FOREST', area: 26, clat: 15, clon: 101, aiColor: '#4338ca', rivals: ['MMR', 'KHM'], rings: [[[98,19],[105,17],[103,8],[99,12]]] },
+    { id: 'KHM', name: 'لاوس وكمبوديا', playable: false, economy: 32, resources: 52, military: 42, allies: 5, tier: 'Yellow', chess: { gm: 'سوكوم تشان', elo: 2230 }, biome: 'FOREST', area: 22, clat: 15, clon: 105, aiColor: '#dc2626', rivals: ['VNM', 'THA'], rings: [[[101,21],[106,18],[106,11],[102,13]]] },
+    { id: 'MYS', name: 'ماليزيا', playable: false, economy: 63, resources: 76, military: 57, allies: 6, tier: 'Green', chess: { gm: 'يوه لي تيان', elo: 2530 }, biome: 'FOREST', area: 22, clat: 4, clon: 109, aiColor: '#1d4ed8', rivals: ['IDN'], rings: [[[100,6],[104,2],[102,1],[100,4]],[[110,2],[118,6],[117,3],[110,1]]] },
+    { id: 'PHL', name: 'الفلبين', playable: false, economy: 55, resources: 58, military: 54, allies: 8, tier: 'Yellow', chess: { gm: 'ويسلي سو (الفلبين)', elo: 2755 }, biome: 'FOREST', area: 24, clat: 13, clon: 122, aiColor: '#2563eb', rivals: ['CHN'], rings: [[[120,18],[123,14],[126,7],[121,6],[119,14]]] },
+    { id: 'PNG', name: 'بابوا غينيا الجديدة', playable: false, economy: 27, resources: 73, military: 33, allies: 6, tier: 'Yellow', chess: { gm: 'ستيوارت فانسي', elo: 2210 }, biome: 'FOREST', area: 22, clat: -6, clon: 145, aiColor: '#059669', rivals: ['IDN'], rings: [[[141,-3],[149,-6],[148,-10],[141,-8]]] },
+    { id: 'NZL', name: 'نيوزيلندا', playable: false, economy: 58, resources: 66, military: 46, allies: 9, tier: 'Yellow', chess: { gm: 'موراي تشاندلر', elo: 2510 }, biome: 'FOREST', area: 22, clat: -42, clon: 173, aiColor: '#0f172a', rivals: [], rings: [[[173,-35],[178,-38],[175,-41],[172,-39]],[[167,-45],[173,-41],[171,-46],[167,-46]]] }
+];
+
+// Additional 17 chess nations to complete a full 100-nation World Chess Championship Roster
+const EXTRA_CHESS_NATIONS = [
+    { id: 'NLD', name: 'هولندا', chess: { gm: 'أنيش جيري', elo: 2762 } },
+    { id: 'ARM', name: 'أرمينيا', chess: { gm: 'ليفون أرونيان', elo: 2742 } },
+    { id: 'AZE', name: 'أذربيجان', chess: { gm: 'شهريار ماميدياروف', elo: 2734 } },
+    { id: 'HUN', name: 'المجر', chess: { gm: 'بيتر ليكو', elo: 2670 } },
+    { id: 'BGR', name: 'بلغاريا', chess: { gm: 'فيسيلين توبالوف', elo: 2710 } },
+    { id: 'GEO', name: 'جورجيا', chess: { gm: 'بادور جوبافا', elo: 2595 } },
+    { id: 'HRV', name: 'كرواتيا', chess: { gm: 'إيفان ساريتش', elo: 2665 } },
+    { id: 'AUT', name: 'النمسا', chess: { gm: 'ماركوس راغر', elo: 2645 } },
+    { id: 'CHE', name: 'سويسرا', chess: { gm: 'فاديم ميلاف', elo: 2610 } },
+    { id: 'DNK', name: 'الدنمارك', chess: { gm: 'يوناس بيري', elo: 2640 } },
+    { id: 'BEL', name: 'بلجيكا', chess: { gm: 'دانييل داردها', elo: 2620 } },
+    { id: 'IRL', name: 'أيرلندا', chess: { gm: 'ألكسندر بابورين', elo: 2490 } },
+    { id: 'LBN', name: 'لبنان', chess: { gm: 'فادي عيد', elo: 2390 } },
+    { id: 'KWT', name: 'الكويت', chess: { gm: 'بدر الهاجري', elo: 2330 } },
+    { id: 'QAT', name: 'قطر', chess: { gm: 'حسين عزيز', elo: 2440 } },
+    { id: 'BHR', name: 'البحرين', chess: { gm: 'علي الغسرة', elo: 2310 } },
+    { id: 'SGP', name: 'سنغافورة', chess: { gm: 'تين جينغياو', elo: 2585 } }
+];
+
+/**
+ * ============================================================================
+ * 2. MODE 5 ENGINE: FIFA/PES-STYLE WORLD CUP TOURNAMENT & ANTI-GLITCH PHYSICS
+ * ============================================================================
+ */
+class WorldCupFootballEngine {
+    constructor(canvas, ctx, playerNationId, playerColor, showToastFn, showEndModalFn) {
+        this.canvas = canvas;
+        this.ctx = ctx;
+        this.playerNationId = playerNationId;
+        this.playerColor = playerColor;
+        this.showToast = showToastFn;
+        this.showEndModal = showEndModalFn;
+
+        this.teams = WORLD_NATIONS_DB.filter(n => n.playable).map(n => ({
+            id: n.id,
+            name: n.name,
+            ovr: n.fb.ovr,
+            atk: n.fb.atk,
+            mid: n.fb.mid,
+            def: n.fb.def,
+            gk: n.fb.gk,
+            kit1: n.id === playerNationId ? playerColor : n.fb.kit1,
+            kit2: n.fb.kit2
+        }));
+
+        this.roundNames = ['دور الـ 32', 'دور الـ 16', 'ربع النهائي', 'نصف النهائي', 'نهائي كأس العالم'];
+        this.roundIndex = 0;
+        this.matches = [];
+        this.playerMatchIndex = 0;
+        this.isPlayerEliminated = false;
+
+        // Pitch Dimensions (Logical 1000 x 620)
+        this.pitchW = 1000;
+        this.pitchH = 620;
+        this.goalTop = 245;
+        this.goalBottom = 375;
+
+        this.ball = { x: 500, y: 310, vx: 0, vy: 0, spin: 0, owner: null, radius: 7 };
+        this.players = [];
+        this.controlledPlayer = null;
+        this.aiCoachMode = false;
+
+        this.matchTime = 0; // 0 to 90 game minutes (mapped to 75 real seconds per match)
+        this.matchDurationReal = 75;
+        this.homeScore = 0;
+        this.awayScore = 0;
+        this.matchEnded = false;
+        this.goalCelebrationTimer = 0;
+
+        this.joy = { x: 0, y: 0, active: false };
+        this.keys = {};
+
+        this.initBracket();
+        this.setupMatch(0);
+        this.bindControls();
+    }
+
+    initBracket() {
+        const shuffled = [...this.teams].sort(() => Math.random() - 0.5);
+        this.matches = [];
+        for (let i = 0; i < 32; i += 2) {
+            this.matches.push({
+                home: shuffled[i],
+                away: shuffled[i + 1],
+                homeGoals: 0,
+                awayGoals: 0,
+                played: false,
+                winner: null
+            });
+        }
+        this.playerMatchIndex = this.matches.findIndex(
+            m => m.home.id === this.playerNationId || m.away.id === this.playerNationId
+        );
+        this.renderBracketUI();
+    }
+
+    setupMatch(matchIdx) {
+        this.playerMatchIndex = matchIdx;
+        const m = this.matches[matchIdx];
+        // Ensure player team is always on Left (Home) for intuitive directional attacking
+        if (m.away.id === this.playerNationId) {
+            const tmp = m.home;
+            m.home = m.away;
+            m.away = tmp;
+        }
+
+        this.homeTeam = m.home;
+        this.awayTeam = m.away;
+        this.homeScore = 0;
+        this.awayScore = 0;
+        this.matchTime = 0;
+        this.matchEnded = false;
+        this.goalCelebrationTimer = 0;
+
+        document.getElementById('wc-home-name').textContent = this.homeTeam.name;
+        document.getElementById('wc-home-ovr').textContent = `تقييم: ${this.homeTeam.ovr}`;
+        document.getElementById('wc-home-dot').style.backgroundColor = this.homeTeam.kit1;
+
+        document.getElementById('wc-away-name').textContent = this.awayTeam.name;
+        document.getElementById('wc-away-ovr').textContent = `تقييم: ${this.awayTeam.ovr}`;
+        document.getElementById('wc-away-dot').style.backgroundColor = this.awayTeam.kit1;
+
+        document.getElementById('wc-round-badge').textContent = this.roundNames[this.roundIndex];
+        document.getElementById('wc-bracket-round-lbl').textContent = this.roundNames[this.roundIndex];
+        document.getElementById('wc-next-match-btn').style.display = 'none';
+
+        this.spawnFormations();
+        this.resetKickoff(true);
+        this.renderBracketUI();
+    }
+
+    spawnFormations() {
+        this.players = [];
+        // 7v7 Tactical Formation (1 GK + 2 DEF + 2 MID + 2 FWD per side)
+        const homeCoords = [
+            { role: 'GK', x: 52, y: 310 },
+            { role: 'DEF', x: 210, y: 185 },
+            { role: 'DEF', x: 210, y: 435 },
+            { role: 'MID', x: 365, y: 155 },
+            { role: 'MID', x: 365, y: 465 },
+            { role: 'FWD', x: 465, y: 245 },
+            { role: 'FWD', x: 465, y: 375 }
+        ];
+
+        const awayCoords = [
+            { role: 'GK', x: 948, y: 310 },
+            { role: 'DEF', x: 790, y: 185 },
+            { role: 'DEF', x: 790, y: 435 },
+            { role: 'MID', x: 635, y: 155 },
+            { role: 'MID', x: 635, y: 465 },
+            { role: 'FWD', x: 535, y: 245 },
+            { role: 'FWD', x: 535, y: 375 }
+        ];
+
+        homeCoords.forEach((c, idx) => {
+            this.players.push({
+                id: `H_${idx}`,
+                side: 'home',
+                role: c.role,
+                homeX: c.x,
+                homeY: c.y,
+                x: c.x,
+                y: c.y,
+                vx: 0,
+                vy: 0,
+                radius: 13,
+                rating: this.homeTeam.ovr,
+                color: this.homeTeam.kit1,
+                trim: this.homeTeam.kit2,
+                stamina: 100,
+                kickCooldown: 0,
+                gkHoldTimer: 0,
+                diveTimer: 0,
+                diveVy: 0
+            });
+        });
+
+        awayCoords.forEach((c, idx) => {
+            this.players.push({
+                id: `A_${idx}`,
+                side: 'away',
+                role: c.role,
+                homeX: c.x,
+                homeY: c.y,
+                x: c.x,
+                y: c.y,
+                vx: 0,
+                vy: 0,
+                radius: 13,
+                rating: this.awayTeam.ovr,
+                color: this.awayTeam.kit1,
+                trim: this.awayTeam.kit2,
+                stamina: 100,
+                kickCooldown: 0,
+                gkHoldTimer: 0,
+                diveTimer: 0,
+                diveVy: 0
+            });
+        });
+
+        this.controlledPlayer = this.players.find(p => p.side === 'home' && p.role === 'FWD');
+    }
+
+    resetKickoff(homeKick) {
+        this.ball.x = 500;
+        this.ball.y = 310;
+        this.ball.vx = 0;
+        this.ball.vy = 0;
+        this.ball.owner = null;
+
+        this.players.forEach(p => {
+            p.x = p.homeX + (homeKick && p.side === 'away' ? 30 : (!homeKick && p.side === 'home' ? -30 : 0));
+            p.y = p.homeY;
+            p.vx = 0;
+            p.vy = 0;
+            p.kickCooldown = 0;
+            p.gkHoldTimer = 0;
+            p.diveTimer = 0;
+        });
+
+        const kicker = this.players.find(p => p.side === (homeKick ? 'home' : 'away') && p.role === 'FWD');
+        if (kicker) {
+            kicker.x = 500 + (homeKick ? -12 : 12);
+            kicker.y = 310;
+            this.ball.owner = kicker;
+            if (homeKick) this.controlledPlayer = kicker;
+        }
+    }
+
+    bindControls() {
+        const joyBase = document.getElementById('wc-joystick-base');
+        const joyKnob = document.getElementById('wc-joystick-knob');
+        const maxR = 32;
+
+        const handleJoy = (clientX, clientY) => {
+            const rect = joyBase.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            let dx = clientX - cx;
+            let dy = clientY - cy;
+            const dist = Math.hypot(dx, dy);
+            if (dist > maxR) {
+                dx = (dx / dist) * maxR;
+                dy = (dy / dist) * maxR;
+            }
+            joyKnob.style.transform = `translate(${dx}px, ${dy}px)`;
+            this.joy.x = dx / maxR;
+            this.joy.y = dy / maxR;
+        };
+
+        const resetJoy = () => {
+            this.joy.active = false;
+            this.joy.x = 0;
+            this.joy.y = 0;
+            joyKnob.style.transform = `translate(0px, 0px)`;
+        };
+
+        joyBase.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.joy.active = true;
+            handleJoy(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        joyBase.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (this.joy.active) handleJoy(e.touches[0].clientX, e.touches[0].clientY);
+        }, { passive: false });
+
+        joyBase.addEventListener('touchend', resetJoy);
+        joyBase.addEventListener('mousedown', (e) => {
+            this.joy.active = true;
+            handleJoy(e.clientX, e.clientY);
+        });
+        window.addEventListener('mousemove', (e) => {
+            if (this.joy.active) handleJoy(e.clientX, e.clientY);
+        });
+        window.addEventListener('mouseup', () => {
+            if (this.joy.active) resetJoy();
+        });
+
+        // FIFA/PES Action Buttons
+        document.getElementById('fbtn-pass').addEventListener('click', () => this.actionPass(false));
+        document.getElementById('fbtn-through').addEventListener('click', () => this.actionPass(true));
+        document.getElementById('fbtn-shoot').addEventListener('click', () => this.actionShoot());
+        document.getElementById('fbtn-switch').addEventListener('click', () => this.actionSwitchOrPress());
+
+        window.addEventListener('keydown', (e) => {
+            this.keys[e.code] = true;
+            if (e.code === 'KeyS') this.actionPass(false);
+            if (e.code === 'KeyW') this.actionPass(true);
+            if (e.code === 'KeyD' || e.code === 'Space') this.actionShoot();
+            if (e.code === 'KeyQ') this.actionSwitchOrPress();
+        });
+        window.addEventListener('keyup', (e) => {
+            this.keys[e.code] = false;
+        });
+
+        const aiBtn = document.getElementById('wc-toggle-ai-btn');
+        aiBtn.addEventListener('click', () => {
+            this.aiCoachMode = !this.aiCoachMode;
+            aiBtn.classList.toggle('active', !this.aiCoachMode);
+            aiBtn.textContent = this.aiCoachMode
+                ? '🤖 الوضع: مدرب ذكاء اصطناعي (اضغط للتحكم اليدوي)'
+                : '🎮 الوضع: تحكم يدوي (اضغط للتبديل لمدرب AI)';
+        });
+
+        document.getElementById('wc-next-match-btn').addEventListener('click', () => this.advanceTournament());
+    }
+
+    actionPass(isThrough) {
+        if (this.aiCoachMode || this.matchEnded) return;
+        const p = this.controlledPlayer;
+        if (!p || this.ball.owner !== p) return;
+
+        // Find best open teammate ahead or nearest in joystick direction
+        const teammates = this.players.filter(t => t.side === 'home' && t.id !== p.id);
+        let bestMate = null;
+        let bestScore = -Infinity;
+
+        const aimX = (Math.abs(this.joy.x) > 0.1 || Math.abs(this.joy.y) > 0.1) ? this.joy.x : 1;
+        const aimY = (Math.abs(this.joy.x) > 0.1 || Math.abs(this.joy.y) > 0.1) ? this.joy.y : 0;
+
+        teammates.forEach(t => {
+            const dx = t.x - p.x;
+            const dy = t.y - p.y;
+            const dist = Math.hypot(dx, dy);
+            if (dist < 25 || dist > 520) return;
+            const dot = (dx / dist) * aimX + (dy / dist) * aimY;
+            const score = dot * 120 - dist * 0.12 + (t.x > p.x ? 25 : 0);
+            if (score > bestScore) {
+                bestScore = score;
+                bestMate = t;
+            }
+        });
+
+        if (bestMate) {
+            const leadX = isThrough ? bestMate.x + 65 : bestMate.x;
+            const leadY = bestMate.y;
+            const ang = Math.atan2(leadY - this.ball.y, leadX - this.ball.x);
+            const speed = isThrough ? 460 : 410;
+            this.kickBall(p, Math.cos(ang) * speed, Math.sin(ang) * speed, 0);
+            this.controlledPlayer = bestMate;
+        }
+    }
+
+    actionShoot() {
+        if (this.aiCoachMode || this.matchEnded) return;
+        const p = this.controlledPlayer;
+        if (!p || this.ball.owner !== p) return;
+
+        // Target enemy goal (x = 980, y between 255 and 365)
+        const targetY = 310 + (this.joy.y * 52) + ((Math.random() - 0.5) * 18);
+        const ang = Math.atan2(targetY - this.ball.y, 985 - this.ball.x);
+        const power = 560 + (this.homeTeam.atk - 75) * 4;
+        this.kickBall(p, Math.cos(ang) * power, Math.sin(ang) * power, this.joy.y * 45);
+        this.setCommentary(`🔥 تسديدة صاروخية من ${this.homeTeam.name} باتجاه المرمى!`);
+    }
+
+    actionSwitchOrPress() {
+        if (this.aiCoachMode || this.matchEnded) return;
+        if (this.ball.owner && this.ball.owner.side === 'home') {
+            this.controlledPlayer = this.ball.owner;
+            return;
+        }
+        // Switch to nearest home outfield player to the ball
+        let nearest = null;
+        let minD = Infinity;
+        this.players.forEach(p => {
+            if (p.side === 'home' && p.role !== 'GK') {
+                const d = Math.hypot(p.x - this.ball.x, p.y - this.ball.y);
+                if (d < minD) {
+                    minD = d;
+                    nearest = p;
+                }
+            }
+        });
+        if (nearest) this.controlledPlayer = nearest;
+    }
+
+    kickBall(kicker, vx, vy, spin) {
+        this.ball.owner = null;
+        kicker.kickCooldown = 0.28;
+        this.ball.x = kicker.x + Math.cos(Math.atan2(vy, vx)) * (kicker.radius + this.ball.radius + 4);
+        this.ball.y = kicker.y + Math.sin(Math.atan2(vy, vx)) * (kicker.radius + this.ball.radius + 4);
+        this.ball.vx = vx;
+        this.ball.vy = vy;
+        this.ball.spin = spin;
+    }
+
+    update(dt) {
+        if (this.matchEnded) return;
+
+        if (this.goalCelebrationTimer > 0) {
+            this.goalCelebrationTimer -= dt;
+            if (this.goalCelebrationTimer <= 0) {
+                this.resetKickoff(this.lastScorerSide === 'away');
+            }
+            return;
+        }
+
+        // Advance Match Clock (75 real seconds = 90 match minutes)
+        this.matchTime += (90 / this.matchDurationReal) * dt;
+        if (this.matchTime >= 90) {
+            this.matchTime = 90;
+            this.finishMatch();
+            return;
+        }
+
+        // Combine Keyboard & Joystick
+        let inputX = this.joy.x;
+        let inputY = this.joy.y;
+        if (this.keys['ArrowLeft'] || this.keys['KeyA']) inputX = -1;
+        if (this.keys['ArrowRight']) inputX = 1;
+        if (this.keys['ArrowUp']) inputY = -1;
+        if (this.keys['ArrowDown']) inputY = 1;
+
+        // Auto-switch controlled player when home team wins ball
+        if (this.ball.owner && this.ball.owner.side === 'home' && this.ball.owner.role !== 'GK') {
+            this.controlledPlayer = this.ball.owner;
+        }
+
+        // Update Players & Goalkeepers
+        this.players.forEach(p => {
+            if (p.kickCooldown > 0) p.kickCooldown = Math.max(0, p.kickCooldown - dt);
+
+            const baseSpeed = 148 + (p.rating - 75) * 1.4;
+
+            if (p.role === 'GK') {
+                this.updateGoalkeeperAI(p, dt);
+            } else if (!this.aiCoachMode && p === this.controlledPlayer) {
+                const mag = Math.hypot(inputX, inputY);
+                if (mag > 0.08) {
+                    const nx = inputX / Math.max(1, mag);
+                    const ny = inputY / Math.max(1, mag);
+                    p.vx = nx * baseSpeed * 1.08;
+                    p.vy = ny * baseSpeed * 1.08;
+                } else {
+                    p.vx *= 0.75;
+                    p.vy *= 0.75;
+                }
+            } else {
+                this.updateOutfieldAI(p, baseSpeed, dt);
+            }
+
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+
+            // Keep inside pitch boundaries cleanly
+            p.x = Math.max(28, Math.min(this.pitchW - 28, p.x));
+            p.y = Math.max(24, Math.min(this.pitchH - 24, p.y));
+        });
+
+        // Strict Anti-Sticking Circle-to-Circle Separation Physics (Zero Player/GK Locking)
+        for (let iter = 0; iter < 2; iter++) {
+            for (let i = 0; i < this.players.length; i++) {
+                for (let j = i + 1; j < this.players.length; j++) {
+                    const a = this.players[i];
+                    const b = this.players[j];
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const dist = Math.hypot(dx, dy);
+                    const minSep = a.radius + b.radius + 2;
+                    if (dist < minSep && dist > 0.001) {
+                        const overlap = (minSep - dist) * 0.55;
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+                        a.x -= nx * overlap;
+                        a.y -= ny * overlap;
+                        b.x += nx * overlap;
+                        b.y += ny * overlap;
+                    }
+                }
+            }
+        }
+
+        // Ball Physics & Possession
+        if (this.ball.owner) {
+            const o = this.ball.owner;
+            const dirX = Math.abs(o.vx) + Math.abs(o.vy) > 5
+                ? o.vx / Math.hypot(o.vx, o.vy)
+                : (o.side === 'home' ? 1 : -1);
+            const dirY = Math.abs(o.vx) + Math.abs(o.vy) > 5
+                ? o.vy / Math.hypot(o.vx, o.vy)
+                : 0;
+
+            this.ball.x = o.x + dirX * (o.radius + 5);
+            this.ball.y = o.y + dirY * (o.radius + 5);
+            this.ball.vx = o.vx;
+            this.ball.vy = o.vy;
+
+            // Goalkeeper Auto-Punt after 1.3s to prevent freezing/soft-lock
+            if (o.role === 'GK') {
+                o.gkHoldTimer += dt;
+                if (o.gkHoldTimer >= 1.3) {
+                    o.gkHoldTimer = 0;
+                    const dir = o.side === 'home' ? 1 : -1;
+                    this.kickBall(o, dir * 430, (Math.random() - 0.5) * 160, 0);
+                    this.setCommentary(`🧤 حارس المرمى يشتت الكرة بقوة إلى منتصف الملعب!`);
+                }
+            }
+        } else {
+            this.ball.x += this.ball.vx * dt;
+            this.ball.y += this.ball.vy * dt;
+            this.ball.vy += this.ball.spin * dt;
+            this.ball.vx *= Math.pow(0.45, dt);
+            this.ball.vy *= Math.pow(0.45, dt);
+            this.ball.spin *= Math.pow(0.3, dt);
+
+            // Check Goal Scoring
+            if (this.ball.x >= this.pitchW - 16 && this.ball.y >= this.goalTop && this.ball.y <= this.goalBottom) {
+                this.onGoalScored('home');
+                return;
+            }
+            if (this.ball.x <= 16 && this.ball.y >= this.goalTop && this.ball.y <= this.goalBottom) {
+                this.onGoalScored('away');
+                return;
+            }
+
+            // Touchline & Endline Bounce (No out-of-bounds soft-locks)
+            if (this.ball.y <= 18) { this.ball.y = 18; this.ball.vy = Math.abs(this.ball.vy) * 0.75; }
+            if (this.ball.y >= this.pitchH - 18) { this.ball.y = this.pitchH - 18; this.ball.vy = -Math.abs(this.ball.vy) * 0.75; }
+            if (this.ball.x <= 18) { this.ball.x = 18; this.ball.vx = Math.abs(this.ball.vx) * 0.75; }
+            if (this.ball.x >= this.pitchW - 18) { this.ball.x = this.pitchW - 18; this.ball.vx = -Math.abs(this.ball.vx) * 0.75; }
+        }
+
+        // Ball Capture & Clean Tackling
+        this.players.forEach(p => {
+            if (p.kickCooldown > 0) return;
+            const d = Math.hypot(this.ball.x - p.x, this.ball.y - p.y);
+            if (d <= p.radius + this.ball.radius + 3) {
+                if (!this.ball.owner) {
+                    const ballSpeed = Math.hypot(this.ball.vx, this.ball.vy);
+                    if (p.role === 'GK' && ballSpeed > 260) {
+                        // GK parry or catch based on GK rating
+                        const catchProb = 0.45 + (p.rating - 75) * 0.015;
+                        if (Math.random() < catchProb) {
+                            this.ball.owner = p;
+                            p.gkHoldTimer = 0;
+                            this.setCommentary(`🧤 تصدٍّ رائع! حارس المرمى يمسك بالكرة بثبات.`);
+                        } else {
+                            const deflectDir = p.side === 'home' ? 1 : -1;
+                            this.kickBall(p, deflectDir * 220, (Math.random() - 0.5) * 260, 0);
+                        }
+                    } else {
+                        this.ball.owner = p;
+                    }
+                } else if (this.ball.owner.side !== p.side && this.ball.owner.role !== 'GK') {
+                    // Clean Tackle Check (Never steal from GK holding ball)
+                    const tackleChance = 0.06 + (p.rating - this.ball.owner.rating) * 0.004;
+                    if (Math.random() < tackleChance) {
+                        const prev = this.ball.owner;
+                        prev.kickCooldown = 0.45;
+                        this.ball.owner = p;
+                        if (p.side === 'home') this.controlledPlayer = p;
+                    }
+                }
+            }
+        });
+
+        this.updateScoreboardDOM();
+    }
+
+    updateGoalkeeperAI(gk, dt) {
+        const boxX = gk.side === 'home' ? 46 : this.pitchW - 46;
+        const targetY = Math.max(this.goalTop + 8, Math.min(this.goalBottom - 8, this.ball.y));
+        const gkSpeed = 135 + (gk.rating - 75) * 1.5;
+
+        gk.vx = (boxX - gk.x) * 6;
+        const dy = targetY - gk.y;
+        gk.vy = Math.abs(dy) > 3 ? Math.sign(dy) * Math.min(gkSpeed, Math.abs(dy) * 5) : 0;
+    }
+
+    updateOutfieldAI(p, baseSpeed, dt) {
+        const isHome = p.side === 'home';
+        const attackDir = isHome ? 1 : -1;
+
+        if (this.ball.owner === p) {
+            // AI Ball Carrier: Dribble toward goal, pass if pressured, or shoot in range
+            const goalX = isHome ? 975 : 25;
+            const distToGoal = Math.hypot(goalX - p.x, 310 - p.y);
+
+            if (distToGoal < 250 && Math.random() < 0.045) {
+                const aimY = 310 + (Math.random() - 0.5) * 85;
+                const ang = Math.atan2(aimY - p.y, goalX - p.x);
+                const shotPower = 510 + (p.rating - 75) * 4.5;
+                this.kickBall(p, Math.cos(ang) * shotPower, Math.sin(ang) * shotPower, (Math.random() - 0.5) * 30);
+                return;
+            }
+
+            // Check nearby defender pressure
+            const pressured = this.players.some(opp => opp.side !== p.side && Math.hypot(opp.x - p.x, opp.y - p.y) < 55);
+            if (pressured && Math.random() < 0.06) {
+                const mate = this.players.find(m => m.side === p.side && m.id !== p.id && m.role !== 'GK' && Math.hypot(m.x - p.x, m.y - p.y) > 70);
+                if (mate) {
+                    const ang = Math.atan2(mate.y - p.y, mate.x - p.x);
+                    this.kickBall(p, Math.cos(ang) * 380, Math.sin(ang) * 380, 0);
+                    return;
+                }
+            }
+
+            const ang = Math.atan2(310 - p.y, goalX - p.x);
+            p.vx = Math.cos(ang) * baseSpeed * 0.94;
+            p.vy = Math.sin(ang) * baseSpeed * 0.94;
+        } else {
+            // Off-ball positioning or pressing
+            const distToBall = Math.hypot(this.ball.x - p.x, this.ball.y - p.y);
+            const isNearest = !this.players.some(m =>
+                m.side === p.side && m.role !== 'GK' && Math.hypot(this.ball.x - m.x, this.ball.y - m.y) < distToBall
+            );
+
+            if (isNearest && (!this.ball.owner || this.ball.owner.side !== p.side)) {
+                const ang = Math.atan2(this.ball.y - p.y, this.ball.x - p.x);
+                p.vx = Math.cos(ang) * baseSpeed;
+                p.vy = Math.sin(ang) * baseSpeed;
+            } else {
+                const ballShiftX = (this.ball.x - 500) * 0.42;
+                const ballShiftY = (this.ball.y - 310) * 0.25;
+                const tx = Math.max(85, Math.min(this.pitchW - 85, p.homeX + ballShiftX));
+                const ty = Math.max(45, Math.min(this.pitchH - 45, p.homeY + ballShiftY));
+                const dx = tx - p.x;
+                const dy = ty - p.y;
+                const dist = Math.hypot(dx, dy);
+                if (dist > 10) {
+                    p.vx = (dx / dist) * baseSpeed * 0.85;
+                    p.vy = (dy / dist) * baseSpeed * 0.85;
+                } else {
+                    p.vx *= 0.8;
+                    p.vy *= 0.8;
+                }
+            }
+        }
+    }
+
+    onGoalScored(side) {
+        if (side === 'home') {
+            this.homeScore++;
+            this.setCommentary(`⚽ جوووووول! ${this.homeTeam.name} يهز الشباك!`);
+            this.showToast(`⚽ جوووول رائع لمنتخب ${this.homeTeam.name}!`);
+        } else {
+            this.awayScore++;
+            this.setCommentary(`⚽ هدف لمنتخب ${this.awayTeam.name}!`);
+        }
+        this.lastScorerSide = side;
+        this.goalCelebrationTimer = 2.0;
+        this.updateScoreboardDOM();
+    }
+
+    finishMatch() {
+        // Golden Goal / Penalty Tie-breaker if drawn at 90'
+        if (this.homeScore === this.awayScore) {
+            const homeProb = 0.5 + (this.homeTeam.ovr - this.awayTeam.ovr) * 0.025;
+            if (Math.random() < homeProb) {
+                this.homeScore++;
+                this.showToast(`🎯 فوز مثير بركلات الترجيح لصالح ${this.homeTeam.name}!`);
+            } else {
+                this.awayScore++;
+                this.showToast(`💔 خسارة بركلات الترجيح أمام ${this.awayTeam.name}.`);
+            }
+        }
+
+        this.matchEnded = true;
+        this.updateScoreboardDOM();
+
+        const currentMatch = this.matches[this.playerMatchIndex];
+        currentMatch.homeGoals = this.homeScore;
+        currentMatch.awayGoals = this.awayScore;
+        currentMatch.played = true;
+        currentMatch.winner = this.homeScore > this.awayScore ? currentMatch.home : currentMatch.away;
+
+        // Simulate all other matches in current round
+        this.matches.forEach((m, idx) => {
+            if (!m.played) {
+                const diff = m.home.ovr - m.away.ovr;
+                let hg = Math.max(0, Math.round(Math.random() * 2.5 + diff * 0.06));
+                let ag = Math.max(0, Math.round(Math.random() * 2.5 - diff * 0.06));
+                if (hg === ag) {
+                    if (Math.random() < 0.5 + diff * 0.02) hg++; else ag++;
+                }
+                m.homeGoals = hg;
+                m.awayGoals = ag;
+                m.played = true;
+                m.winner = hg > ag ? m.home : m.away;
+            }
+        });
+
+        this.renderBracketUI();
+
+        if (currentMatch.winner.id !== this.playerNationId) {
+            this.showEndModal('خروج من البطولة', `انتهى مشوار ${this.homeTeam.name}`, `خسرت أمام ${this.awayTeam.name} بنتيجة ${this.awayScore} - ${this.homeScore} في ${this.roundNames[this.roundIndex]}.`);
+        } else if (this.roundIndex === 4) {
+            this.showEndModal('بطل كأس العالم 🏆', `${this.homeTeam.name} بطل العالم!`, `توجت بالكأس الذهبية بعد الفوز في النهائي على ${this.awayTeam.name} بنتيجة ${this.homeScore} - ${this.awayScore}!`);
+        } else {
+            const nextBtn = document.getElementById('wc-next-match-btn');
+            nextBtn.style.display = 'block';
+            nextBtn.textContent = `🏆 التأهل إلى ${this.roundNames[this.roundIndex + 1]} — ابدأ المباراة`;
+        }
+    }
+
+    advanceTournament() {
+        const winners = this.matches.map(m => m.winner);
+        this.roundIndex++;
+        this.matches = [];
+        for (let i = 0; i < winners.length; i += 2) {
+            this.matches.push({
+                home: winners[i],
+                away: winners[i + 1],
+                homeGoals: 0,
+                awayGoals: 0,
+                played: false,
+                winner: null
+            });
+        }
+        const nextIdx = this.matches.findIndex(
+            m => m.home.id === this.playerNationId || m.away.id === this.playerNationId
+        );
+        this.setupMatch(nextIdx);
+    }
+
+    updateScoreboardDOM() {
+        document.getElementById('wc-score-text').textContent = `${this.awayScore} - ${this.homeScore}`;
+        const mins = Math.min(90, Math.floor(this.matchTime));
+        document.getElementById('wc-clock-text').textContent = `${String(mins).padStart(2, '0')}:00`;
+    }
+
+    setCommentary(text) {
+        document.getElementById('wc-commentary-bar').textContent = text;
+    }
+
+    renderBracketUI() {
+        const grid = document.getElementById('wc-bracket-grid');
+        grid.innerHTML = this.matches.map(m => {
+            const isPlayer = m.home.id === this.playerNationId || m.away.id === this.playerNationId;
+            const scoreStr = m.played ? `${m.homeGoals}-${m.awayGoals}` : 'VS';
+            return `
+                <div class="bracket-match-pill ${isPlayer ? 'player-match' : ''}">
+                    <span>${m.home.name}</span>
+                    <span style="font-family:'JetBrains Mono',monospace; color:#38bdf8;">${scoreStr}</span>
+                    <span>${m.away.name}</span>
+                </div>
+            `;
+        }).join('');
+    }
+
+    render() {
+        const ctx = this.ctx;
+        const cw = this.canvas.width;
+        const ch = this.canvas.height;
+
+        ctx.fillStyle = '#14532d';
+        ctx.fillRect(0, 0, cw, ch);
+
+        const scale = Math.min(cw / this.pitchW, ch / this.pitchH);
+        const offsetX = (cw - this.pitchW * scale) / 2;
+        const offsetY = (ch - this.pitchH * scale) / 2;
+
+        ctx.save();
+        ctx.translate(offsetX, offsetY);
+        ctx.scale(scale, scale);
+
+        // Striped Stadium Grass
+        const stripes = 12;
+        const stripeW = this.pitchW / stripes;
+        for (let i = 0; i < stripes; i++) {
+            ctx.fillStyle = i % 2 === 0 ? '#16a34a' : '#15803d';
+            ctx.fillRect(i * stripeW, 0, stripeW, this.pitchH);
+        }
+
+        // Pitch Lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(18, 18, this.pitchW - 36, this.pitchH - 36);
+
+        // Halfway Line & Center Circle
+        ctx.beginPath();
+        ctx.moveTo(500, 18);
+        ctx.lineTo(500, this.pitchH - 18);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.arc(500, 310, 72, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Penalty Boxes
+        ctx.strokeRect(18, 155, 130, 310);
+        ctx.strokeRect(this.pitchW - 148, 155, 130, 310);
+
+        // Goals
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.fillRect(4, this.goalTop, 14, this.goalBottom - this.goalTop);
+        ctx.fillRect(this.pitchW - 18, this.goalTop, 14, this.goalBottom - this.goalTop);
+        ctx.strokeRect(4, this.goalTop, 14, this.goalBottom - this.goalTop);
+        ctx.strokeRect(this.pitchW - 18, this.goalTop, 14, this.goalBottom - this.goalTop);
+
+        // Draw Players
+        this.players.forEach(p => {
+            // Active Player Ring
+            if (p === this.controlledPlayer && !this.aiCoachMode) {
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius + 6, 0, Math.PI * 2);
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+            }
+
+            // Player Shadow
+            ctx.beginPath();
+            ctx.arc(p.x + 2, p.y + 4, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            ctx.fill();
+
+            // Jersey Circle
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+            ctx.fillStyle = p.role === 'GK' ? '#f97316' : p.color;
+            ctx.fill();
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = p.trim;
+            ctx.stroke();
+        });
+
+        // Draw Ball
+        ctx.beginPath();
+        ctx.arc(this.ball.x + 2, this.ball.y + 3, this.ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = '#0f172a';
+        ctx.stroke();
+
+        ctx.restore();
+    }
+}
+
+/**
+ * ============================================================================
+ * 3. MODE 6 ENGINE: 100-NATION WORLD CHESS CHAMPIONSHIP + MINIMAX ALPHA-BETA AI
+ * ============================================================================
+ */
+class WorldChessChampionshipEngine {
+    constructor(canvas, ctx, playerNationId, showToastFn, showEndModalFn) {
+        this.canvas = canvas;
+        this.ctx = ctx;
+        this.playerNationId = playerNationId;
+        this.showToast = showToastFn;
+        this.showEndModal = showEndModalFn;
+
+        // Assemble Full 100-Nation Roster Sorted from Easiest to World Champions
+        const all100 = [
+            ...WORLD_NATIONS_DB.map(n => ({ id: n.id, name: n.name, gm: n.chess.gm, elo: n.chess.elo })),
+            ...EXTRA_CHESS_NATIONS.map(n => ({ id: n.id, name: n.name, gm: n.chess.gm, elo: n.chess.elo }))
+        ].filter(n => n.id !== playerNationId)
+         .sort((a, b) => a.elo - b.elo);
+
+        // Ensure exact 99 opponents (Stage 1 to 99 -> Final vs World Champion)
+        this.opponents = all100.slice(0, 99);
+        this.stageIndex = 0;
+
+        this.pieceUnicode = {
+            P: '♙', N: '♘', B: '♗', R: '♖', Q: '♕', K: '♔',
+            p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚'
+        };
+
+        this.pieceValues = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+
+        // Positional Piece-Square Tables (from White's perspective)
+        this.pst = {
+            p: [
+                [0,  0,  0,  0,  0,  0,  0,  0],
+                [50, 50, 50, 50, 50, 50, 50, 50],
+                [10, 10, 20, 30, 30, 20, 10, 10],
+                [5,  5, 10, 25, 25, 10,  5,  5],
+                [0,  0,  0, 20, 20,  0,  0,  0],
+                [5, -5,-10,  0,  0,-10, -5,  5],
+                [5, 10, 10,-20,-20, 10, 10,  5],
+                [0,  0,  0,  0,  0,  0,  0,  0]
+            ],
+            n: [
+                [-50,-40,-30,-30,-30,-30,-40,-50],
+                [-40,-20,  0,  0,  0,  0,-20,-40],
+                [-30,  0, 10, 15, 15, 10,  0,-30],
+                [-30,  5, 15, 20, 20, 15,  5,-30],
+                [-30,  0, 15, 20, 20, 15,  0,-30],
+                [-30,  5, 10, 15, 15, 10,  5,-30],
+                [-40,-20,  0,  5,  5,  0,-20,-40],
+                [-50,-40,-30,-30,-30,-30,-40,-50]
+            ],
+            b: [
+                [-20,-10,-10,-10,-10,-10,-10,-20],
+                [-10,  0,  0,  0,  0,  0,  0,-10],
+                [-10,  0,  5, 10, 10,  5,  0,-10],
+                [-10,  5,  5, 10, 10,  5,  5,-10],
+                [-10,  0, 10, 10, 10, 10,  0,-10],
+                [-10, 10, 10, 10, 10, 10, 10,-10],
+                [-10,  5,  0,  0,  0,  0,  5,-10],
+                [-20,-10,-10,-10,-10,-10,-10,-20]
+            ],
+            r: [
+                [0,  0,  0,  0,  0,  0,  0,  0],
+                [5, 10, 10, 10, 10, 10, 10,  5],
+                [-5,  0,  0,  0,  0,  0,  0, -5],
+                [-5,  0,  0,  0,  0,  0,  0, -5],
+                [-5,  0,  0,  0,  0,  0,  0, -5],
+                [-5,  0,  0,  0,  0,  0,  0, -5],
+                [-5,  0,  0,  0,  0,  0,  0, -5],
+                [0,  0,  0,  5,  5,  0,  0,  0]
+            ],
+            q: [
+                [-20,-10,-10, -5, -5,-10,-10,-20],
+                [-10,  0,  0,  0,  0,  0,  0,-10],
+                [-10,  0,  5,  5,  5,  5,  0,-10],
+                [-5,  0,  5,  5,  5,  5,  0, -5],
+                [0,  0,  5,  5,  5,  5,  0, -5],
+                [-10,  5,  5,  5,  5,  5,  0,-10],
+                [-10,  0,  5,  0,  0,  0,  0,-10],
+                [-20,-10,-10, -5, -5,-10,-10,-20]
+            ],
+            k: [
+                [-30,-40,-40,-50,-50,-40,-40,-30],
+                [-30,-40,-40,-50,-50,-40,-40,-30],
+                [-30,-40,-40,-50,-50,-40,-40,-30],
+                [-30,-40,-40,-50,-50,-40,-40,-30],
+                [-20,-30,-30,-40,-40,-30,-30,-20],
+                [-10,-20,-20,-20,-20,-20,-20,-10],
+                [20, 20,  0,  0,  0,  0, 20, 20],
+                [20, 30, 10,  0,  0, 10, 30, 20]
+            ]
+        };
+
+        this.selectedSq = null;
+        this.legalTargets = [];
+        this.lastMove = null;
+        this.pendingPromotion = null;
+        this.aiThinking = false;
+        this.gameOver = false;
+
+        this.bindEvents();
+        this.startMatch(0);
+    }
+
+    startMatch(stageIdx) {
+        this.stageIndex = stageIdx;
+        this.currentOpp = this.opponents[stageIdx];
+
+        this.board = [
+            ['r','n','b','q','k','b','n','r'],
+            ['p','p','p','p','p','p','p','p'],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            [null,null,null,null,null,null,null,null],
+            ['P','P','P','P','P','P','P','P'],
+            ['R','N','B','Q','K','B','N','R']
+        ];
+
+        this.turn = 'w';
+        this.castling = { wK: true, wQ: true, bK: true, bQ: true };
+        this.enPassant = null;
+        this.history = [];
+        this.moveNotations = [];
+        this.capturedByWhite = [];
+        this.capturedByBlack = [];
+        this.selectedSq = null;
+        this.legalTargets = [];
+        this.lastMove = null;
+        this.pendingPromotion = null;
+        this.aiThinking = false;
+        this.gameOver = false;
+
+        document.getElementById('chess-next-opp-btn').style.display = 'none';
+        document.getElementById('chess-promo-bar').style.display = 'none';
+        this.updateChessHUD();
+    }
+
+    getDifficultyProfile() {
+        const idx = this.stageIndex;
+        if (idx < 45) return { label: 'سهل جداً (تصفيات)', depth: 1, blunderRate: 0.45 };
+        if (idx < 75) return { label: 'متوسط (الأدوار الرئيسية)', depth: 2, blunderRate: 0.15 };
+        if (idx < 91) return { label: 'صعب (ثمن النهائي)', depth: 3, blunderRate: 0.04 };
+        return { label: 'أستاذ كبير خارق (ربع/نصف/نهائي)', depth: 3, blunderRate: 0.0 };
+    }
+
+    updateChessHUD() {
+        const prof = this.getDifficultyProfile();
+        let stageName = `الدولة ${this.stageIndex + 1} من 100`;
+        if (this.stageIndex === 98) stageName = '🏆 نهائي بطولة العالم للشطرنج';
+        else if (this.stageIndex >= 96) stageName = '🔥 نصف نهائي بطولة العالم';
+        else if (this.stageIndex >= 92) stageName = '⚔️ ربع نهائي بطولة العالم';
+
+        document.getElementById('chess-stage-lbl').textContent = stageName;
+        document.getElementById('chess-opp-name').textContent = `الخصم: ${this.currentOpp.gm} (${this.currentOpp.name})`;
+        document.getElementById('chess-opp-meta').textContent = `التصنيف: ${this.currentOpp.elo} ELO • الصعوبة: ${prof.label}`;
+
+        const turnLbl = document.getElementById('chess-turn-lbl');
+        if (this.gameOver) {
+            turnLbl.textContent = 'انتهت المباراة';
+        } else if (this.aiThinking) {
+            turnLbl.textContent = `⏳ ${this.currentOpp.gm} يفكر...`;
+            turnLbl.style.color = '#fbbf24';
+        } else {
+            turnLbl.textContent = 'دورك (الأبيض)';
+            turnLbl.style.color = '#38bdf8';
+        }
+
+        document.getElementById('chess-cap-white').textContent = this.capturedByWhite.join(' ') || '—';
+        document.getElementById('chess-cap-black').textContent = this.capturedByBlack.join(' ') || '—';
+        document.getElementById('chess-move-log').textContent =
+            this.moveNotations.length > 0 ? this.moveNotations.join('  ') : '1. بانتظار نقلة الافتتاح...';
+    }
+
+    isWhite(p) { return p && p === p.toUpperCase(); }
+    isBlack(p) { return p && p === p.toLowerCase(); }
+    pieceColor(p) { return !p ? null : (this.isWhite(p) ? 'w' : 'b'); }
+
+    cloneState() {
+        return {
+            board: this.board.map(r => [...r]),
+            turn: this.turn,
+            castling: { ...this.castling },
+            enPassant: this.enPassant ? { ...this.enPassant } : null
+        };
+    }
+
+    restoreState(st) {
+        this.board = st.board.map(r => [...r]);
+        this.turn = st.turn;
+        this.castling = { ...st.castling };
+        this.enPassant = st.enPassant ? { ...st.enPassant } : null;
+    }
+
+    generatePseudoMoves(color) {
+        const moves = [];
+        const dir = color === 'w' ? -1 : 1;
+        const startRow = color === 'w' ? 6 : 1;
+        const promoRow = color === 'w' ? 0 : 7;
+
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const p = this.board[r][c];
+                if (!p || this.pieceColor(p) !== color) continue;
+                const type = p.toLowerCase();
+
+                if (type === 'p') {
+                    const r1 = r + dir;
+                    if (r1 >= 0 && r1 < 8 && !this.board[r1][c]) {
+                        if (r1 === promoRow) {
+                            ['q','r','b','n'].forEach(pr => moves.push({ fr: r, fc: c, tr: r1, tc: c, promo: pr }));
+                        } else {
+                            moves.push({ fr: r, fc: c, tr: r1, tc: c });
+                            const r2 = r + dir * 2;
+                            if (r === startRow && !this.board[r2][c]) {
+                                moves.push({ fr: r, fc: c, tr: r2, tc: c, doublePawn: true });
+                            }
+                        }
+                    }
+                    [-1, 1].forEach(dc => {
+                        const tc = c + dc;
+                        if (r1 >= 0 && r1 < 8 && tc >= 0 && tc < 8) {
+                            const target = this.board[r1][tc];
+                            if (target && this.pieceColor(target) !== color) {
+                                if (r1 === promoRow) {
+                                    ['q','r','b','n'].forEach(pr => moves.push({ fr: r, fc: c, tr: r1, tc: tc, promo: pr }));
+                                } else {
+                                    moves.push({ fr: r, fc: c, tr: r1, tc: tc });
+                                }
+                            } else if (this.enPassant && this.enPassant.r === r1 && this.enPassant.c === tc) {
+                                moves.push({ fr: r, fc: c, tr: r1, tc: tc, isEnPassant: true });
+                            }
+                        }
+                    });
+                } else if (type === 'n') {
+                    [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].forEach(([dr, dc]) => {
+                        const tr = r + dr, tc = c + dc;
+                        if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
+                            const t = this.board[tr][tc];
+                            if (!t || this.pieceColor(t) !== color) moves.push({ fr: r, fc: c, tr, tc });
+                        }
+                    });
+                } else if (type === 'k') {
+                    for (let dr = -1; dr <= 1; dr++) {
+                        for (let dc = -1; dc <= 1; dc++) {
+                            if (dr === 0 && dc === 0) continue;
+                            const tr = r + dr, tc = c + dc;
+                            if (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
+                                const t = this.board[tr][tc];
+                                if (!t || this.pieceColor(t) !== color) moves.push({ fr: r, fc: c, tr, tc });
+                            }
+                        }
+                    }
+                    // Castling
+                    if (color === 'w' && r === 7 && c === 4) {
+                        if (this.castling.wK && !this.board[7][5] && !this.board[7][6] && this.board[7][7] === 'R') {
+                            moves.push({ fr: 7, fc: 4, tr: 7, tc: 6, castle: 'K' });
+                        }
+                        if (this.castling.wQ && !this.board[7][3] && !this.board[7][2] && !this.board[7][1] && this.board[7][0] === 'R') {
+                            moves.push({ fr: 7, fc: 4, tr: 7, tc: 2, castle: 'Q' });
+                        }
+                    } else if (color === 'b' && r === 0 && c === 4) {
+                        if (this.castling.bK && !this.board[0][5] && !this.board[0][6] && this.board[0][7] === 'r') {
+                            moves.push({ fr: 0, fc: 4, tr: 0, tc: 6, castle: 'K' });
+                        }
+                        if (this.castling.bQ && !this.board[0][3] && !this.board[0][2] && !this.board[0][1] && this.board[0][0] === 'r') {
+                            moves.push({ fr: 0, fc: 4, tr: 0, tc: 2, castle: 'Q' });
+                        }
+                    }
+                } else {
+                    const dirs = type === 'b' ? [[-1,-1],[-1,1],[1,-1],[1,1]]
+                        : type === 'r' ? [[-1,0],[1,0],[0,-1],[0,1]]
+                        : [[-1,-1],[-1,1],[1,-1],[1,1],[-1,0],[1,0],[0,-1],[0,1]];
+                    dirs.forEach(([dr, dc]) => {
+                        let tr = r + dr, tc = c + dc;
+                        while (tr >= 0 && tr < 8 && tc >= 0 && tc < 8) {
+                            const t = this.board[tr][tc];
+                            if (!t) {
+                                moves.push({ fr: r, fc: c, tr, tc });
+                            } else {
+                                if (this.pieceColor(t) !== color) moves.push({ fr: r, fc: c, tr, tc });
+                                break;
+                            }
+                            tr += dr;
+                            tc += dc;
+                        }
+                    });
+                }
+            }
+        }
+        return moves;
+    }
+
+    isSquareAttacked(r, c, byColor) {
+        const oppMoves = this.generatePseudoMoves(byColor);
+        return oppMoves.some(m => !m.castle && m.tr === r && m.tc === c);
+    }
+
+    isInCheck(color) {
+        const kingChar = color === 'w' ? 'K' : 'k';
+        let kr = -1, kc = -1;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                if (this.board[r][c] === kingChar) { kr = r; kc = c; break; }
+            }
+        }
+        if (kr === -1) return true;
+        return this.isSquareAttacked(kr, kc, color === 'w' ? 'b' : 'w');
+    }
+
+    applyMoveRaw(move) {
+        const p = this.board[move.fr][move.fc];
+        const captured = this.board[move.tr][move.tc];
+        const color = this.pieceColor(p);
+
+        this.board[move.tr][move.tc] = move.promo
+            ? (color === 'w' ? move.promo.toUpperCase() : move.promo.toLowerCase())
+            : p;
+        this.board[move.fr][move.fc] = null;
+
+        if (move.isEnPassant) {
+            const capR = color === 'w' ? move.tr + 1 : move.tr - 1;
+            this.board[capR][move.tc] = null;
+        }
+
+        if (move.castle === 'K') {
+            this.board[move.fr][5] = this.board[move.fr][7];
+            this.board[move.fr][7] = null;
+        } else if (move.castle === 'Q') {
+            this.board[move.fr][3] = this.board[move.fr][0];
+            this.board[move.fr][0] = null;
+        }
+
+        // Update Castling Rights
+        if (p === 'K') { this.castling.wK = false; this.castling.wQ = false; }
+        if (p === 'k') { this.castling.bK = false; this.castling.bQ = false; }
+        if (move.fr === 7 && move.fc === 0) this.castling.wQ = false;
+        if (move.fr === 7 && move.fc === 7) this.castling.wK = false;
+        if (move.fr === 0 && move.fc === 0) this.castling.bQ = false;
+        if (move.fr === 0 && move.fc === 7) this.castling.bK = false;
+
+        this.enPassant = move.doublePawn
+            ? { r: (move.fr + move.tr) / 2, c: move.fc }
+            : null;
+
+        this.turn = color === 'w' ? 'b' : 'w';
+        return captured;
+    }
+
+    generateLegalMoves(color) {
+        const pseudo = this.generatePseudoMoves(color);
+        const legal = [];
+        const opp = color === 'w' ? 'b' : 'w';
+
+        pseudo.forEach(m => {
+            if (m.castle) {
+                if (this.isInCheck(color)) return;
+                const midC = m.castle === 'K' ? 5 : 3;
+                if (this.isSquareAttacked(m.fr, midC, opp)) return;
+            }
+            const snap = this.cloneState();
+            this.applyMoveRaw(m);
+            if (!this.isInCheck(color)) legal.push(m);
+            this.restoreState(snap);
+        });
+        return legal;
+    }
+
+    evaluateBoard() {
+        let score = 0;
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const p = this.board[r][c];
+                if (!p) continue;
+                const isW = this.isWhite(p);
+                const type = p.toLowerCase();
+                const pstRow = isW ? r : (7 - r);
+                const val = this.pieceValues[type] + this.pst[type][pstRow][c];
+                score += isW ? val : -val;
+            }
+        }
+        return score;
+    }
+
+    minimax(depth, alpha, beta, maximizingWhite) {
+        if (depth === 0) return this.evaluateBoard();
+
+        const color = maximizingWhite ? 'w' : 'b';
+        const moves = this.generateLegalMoves(color);
+        if (moves.length === 0) {
+            if (this.isInCheck(color)) return maximizingWhite ? (-99999 - depth) : (99999 + depth);
+            return 0; // Stalemate
+        }
+
+        // Move ordering: captures first for better alpha-beta pruning
+        moves.sort((a, b) => (this.board[b.tr][b.tc] ? 1 : 0) - (this.board[a.tr][a.tc] ? 1 : 0));
+
+        if (maximizingWhite) {
+            let maxEval = -Infinity;
+            for (const m of moves) {
+                const snap = this.cloneState();
+                this.applyMoveRaw(m);
+                const ev = this.minimax(depth - 1, alpha, beta, false);
+                this.restoreState(snap);
+                maxEval = Math.max(maxEval, ev);
+                alpha = Math.max(alpha, ev);
+                if (beta <= alpha) break;
+            }
+            return maxEval;
+        } else {
+            let minEval = Infinity;
+            for (const m of moves) {
+                const snap = this.cloneState();
+                this.applyMoveRaw(m);
+                const ev = this.minimax(depth - 1, alpha, beta, true);
+                this.restoreState(snap);
+                minEval = Math.min(minEval, ev);
+                beta = Math.min(beta, ev);
+                if (beta <= alpha) break;
+            }
+            return minEval;
+        }
+    }
+
+    makeAIMove() {
+        const moves = this.generateLegalMoves('b');
+        if (moves.length === 0) {
+            this.checkEndCondition();
+            return;
+        }
+
+        const prof = this.getDifficultyProfile();
+        let chosenMove = null;
+
+        if (Math.random() < prof.blunderRate) {
+            chosenMove = moves[Math.floor(Math.random() * moves.length)];
+        } else {
+            let bestVal = Infinity;
+            moves.sort(() => Math.random() - 0.5);
+            for (const m of moves) {
+                const snap = this.cloneState();
+                this.applyMoveRaw(m);
+                const val = this.minimax(prof.depth - 1, -Infinity, Infinity, true);
+                this.restoreState(snap);
+                if (val < bestVal) {
+                    bestVal = val;
+                    chosenMove = m;
+                }
+            }
+        }
+
+        this.executePlayerOrAIMove(chosenMove || moves[0]);
+        this.aiThinking = false;
+        this.updateChessHUD();
+    }
+
+    executePlayerOrAIMove(move) {
+        this.history.push({
+            state: this.cloneState(),
+            capW: [...this.capturedByWhite],
+            capB: [...this.capturedByBlack],
+            notations: [...this.moveNotations],
+            lastMove: this.lastMove
+        });
+
+        const movingPiece = this.board[move.fr][move.fc];
+        const moverColor = this.pieceColor(movingPiece);
+        const cap = this.applyMoveRaw(move);
+
+        if (cap) {
+            if (moverColor === 'w') this.capturedByWhite.push(this.pieceUnicode[cap]);
+            else this.capturedByBlack.push(this.pieceUnicode[cap]);
+        } else if (move.isEnPassant) {
+            if (moverColor === 'w') this.capturedByWhite.push('♟');
+            else this.capturedByBlack.push('♙');
+        }
+
+        const files = 'abcdefgh';
+        const notation = `${files[move.fc]}${8 - move.fr}→${files[move.tc]}${8 - move.tr}`;
+        this.moveNotations.push(notation);
+        this.lastMove = move;
+        this.selectedSq = null;
+        this.legalTargets = [];
+
+        this.checkEndCondition();
+    }
+
+    checkEndCondition() {
+        const legal = this.generateLegalMoves(this.turn);
+        if (legal.length === 0) {
+            this.gameOver = true;
+            if (this.isInCheck(this.turn)) {
+                if (this.turn === 'b') {
+                    this.showToast(`🏆 كش مات! انتصرت على ${this.currentOpp.gm} (${this.currentOpp.name})!`);
+                    if (this.stageIndex >= 98) {
+                        this.showEndModal('بطل العالم للشطرنج 👑', 'أسطورة الشطرنج العالمي!', 'هزمت أبطال العالم الـ 100 وتوجت باللقب العالمي!');
+                    } else {
+                        const nextBtn = document.getElementById('chess-next-opp-btn');
+                        nextBtn.style.display = 'block';
+                        nextBtn.textContent = `🏆 انتصار! تحدي الدولة التالية (${this.stageIndex + 2}/100): ${this.opponents[this.stageIndex + 1].gm}`;
+                    }
+                } else {
+                    this.showToast(`💔 كش مات! تفوق عليك ${this.currentOpp.gm}. يمكنك إعادة المباراة!`);
+                }
+            } else {
+                this.showToast('🤝 تعادل (Stalemate)! أعد المباراة للمنافسة مجدداً.');
+            }
+        } else if (this.isInCheck(this.turn)) {
+            this.showToast('⚠️ كش ملك (Check)!');
+        }
+        this.updateChessHUD();
+    }
+
+    handleBoardClick(r, c) {
+        if (this.gameOver || this.aiThinking || this.turn !== 'w' || this.pendingPromotion) return;
+
+        const matchingMoves = this.legalTargets.filter(m => m.tr === r && m.tc === c);
+        if (matchingMoves.length > 0) {
+            if (matchingMoves[0].promo) {
+                this.pendingPromotion = matchingMoves;
+                document.getElementById('chess-promo-bar').style.display = 'flex';
+                return;
+            }
+            this.executePlayerOrAIMove(matchingMoves[0]);
+            if (!this.gameOver && this.turn === 'b') {
+                this.aiThinking = true;
+                this.updateChessHUD();
+                setTimeout(() => this.makeAIMove(), 220);
+            }
+            return;
+        }
+
+        const clickedPiece = this.board[r][c];
+        if (clickedPiece && this.isWhite(clickedPiece)) {
+            this.selectedSq = { r, c };
+            this.legalTargets = this.generateLegalMoves('w').filter(m => m.fr === r && m.fc === c);
+        } else {
+            this.selectedSq = null;
+            this.legalTargets = [];
+        }
+    }
+
+    bindEvents() {
+        const onPointer = (clientX, clientY) => {
+            const rect = this.canvas.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const y = clientY - rect.top;
+
+            const size = Math.min(this.canvas.width, this.canvas.height) * 0.90;
+            const ox = (this.canvas.width - size) / 2;
+            const oy = (this.canvas.height - size) / 2;
+            const sq = size / 8;
+
+            const c = Math.floor((x - ox) / sq);
+            const r = Math.floor((y - oy) / sq);
+            if (r >= 0 && r < 8 && c >= 0 && c < 8) {
+                this.handleBoardClick(r, c);
+            }
+        };
+
+        this.canvas.addEventListener('click', (e) => onPointer(e.clientX, e.clientY));
+
+        document.querySelectorAll('.promo-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!this.pendingPromotion) return;
+                const chosenType = btn.dataset.piece;
+                const mv = this.pendingPromotion.find(m => m.promo === chosenType) || this.pendingPromotion[0];
+                this.pendingPromotion = null;
+                document.getElementById('chess-promo-bar').style.display = 'none';
+                this.executePlayerOrAIMove(mv);
+                if (!this.gameOver && this.turn === 'b') {
+                    this.aiThinking = true;
+                    this.updateChessHUD();
+                    setTimeout(() => this.makeAIMove(), 220);
+                }
+            });
+        });
+
+        document.getElementById('chess-next-opp-btn').addEventListener('click', () => {
+            if (this.stageIndex + 1 < this.opponents.length) {
+                this.startMatch(this.stageIndex + 1);
+            }
+        });
+
+        document.getElementById('chess-restart-match-btn').addEventListener('click', () => {
+            this.startMatch(this.stageIndex);
+        });
+
+        document.getElementById('chess-undo-btn').addEventListener('click', () => {
+            if (this.aiThinking || this.history.length < 2) return;
+            // Undo both AI move and Player move
+            this.history.pop();
+            const prev = this.history.pop();
+            this.restoreState(prev.state);
+            this.capturedByWhite = prev.capW;
+            this.capturedByBlack = prev.capB;
+            this.moveNotations = prev.notations;
+            this.lastMove = prev.lastMove;
+            this.gameOver = false;
+            this.selectedSq = null;
+            this.legalTargets = [];
+            this.updateChessHUD();
+        });
+    }
+
+    render() {
+        const ctx = this.ctx;
+        const cw = this.canvas.width;
+        const ch = this.canvas.height;
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, cw, ch);
+
+        const size = Math.min(cw, ch) * 0.90;
+        const ox = (cw - size) / 2;
+        const oy = (ch - size) / 2;
+        const sq = size / 8;
+
+        // Board Frame
+        ctx.fillStyle = '#451a03';
+        ctx.fillRect(ox - 8, oy - 8, size + 16, size + 16);
+
+        for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+                const isLight = (r + c) % 2 === 0;
+                ctx.fillStyle = isLight ? '#f3e5ab' : '#8b5a2b';
+                ctx.fillRect(ox + c * sq, oy + r * sq, sq, sq);
+
+                // Last Move Highlight
+                if (this.lastMove && ((this.lastMove.fr === r && this.lastMove.fc === c) || (this.lastMove.tr === r && this.lastMove.tc === c))) {
+                    ctx.fillStyle = 'rgba(250, 204, 21, 0.42)';
+                    ctx.fillRect(ox + c * sq, oy + r * sq, sq, sq);
+                }
+
+                // Selected Square Highlight
+                if (this.selectedSq && this.selectedSq.r === r && this.selectedSq.c === c) {
+                    ctx.fillStyle = 'rgba(56, 189, 248, 0.55)';
+                    ctx.fillRect(ox + c * sq, oy + r * sq, sq, sq);
+                }
+
+                // Legal Move Dots
+                if (this.legalTargets.some(m => m.tr === r && m.tc === c)) {
+                    ctx.beginPath();
+                    ctx.arc(ox + c * sq + sq / 2, oy + r * sq + sq / 2, sq * 0.18, 0, Math.PI * 2);
+                    ctx.fillStyle = this.board[r][c] ? 'rgba(225, 29, 72, 0.75)' : 'rgba(16, 185, 129, 0.78)';
+                    ctx.fill();
+                }
+
+                // Piece Rendering
+                const piece = this.board[r][c];
+                if (piece) {
+                    ctx.font = `${Math.floor(sq * 0.76)}px serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    const px = ox + c * sq + sq / 2;
+                    const py = oy + r * sq + sq / 2 + 2;
+
+                    if (this.isWhite(piece)) {
+                        ctx.strokeStyle = '#0f172a';
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeText(this.pieceUnicode[piece], px, py);
+                        ctx.fillStyle = '#ffffff';
+                    } else {
+                        ctx.fillStyle = '#111827';
+                    }
+                    ctx.fillText(this.pieceUnicode[piece], px, py);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * ============================================================================
+ * 4. MAIN APPLICATION ORCHESTRATOR & GEOPOLITICAL ENGINE (MODES 1-4)
+ * ============================================================================
+ */
+class GeoPulseMasterApp {
+    constructor() {
+        this.canvas = document.getElementById('main-canvas');
+        this.ctx = this.canvas.getContext('2d');
+
+        this.activeSystem = 'geo'; // 'geo', 'worldcup', 'chess'
+        this.gameMode = 'peaceful';
+        this.playerNationId = 'USA';
+        this.playerColor = '#2563EB';
+
+        this.worldCupEngine = null;
+        this.chessEngine = null;
+
+        // Geopolitical Engine State
+        this.nations = [];
+        this.nationMap = new Map();
+        this.selectedTargetId = null;
+        this.hoveredNationId = null;
+        this.treasury = 140.0;
+        this.econDevTimer = 0;
+        this.econMarketTickTimer = 0;
+        this.aiDevTickTimer = 0;
+        this.activeInvasions = [];
+        this.newsLog = [];
+        this.simSpeed = 1;
+        this.isPaused = false;
+        this.isRunning = false;
+        this.aiDecisionTimer = 60;
+
+        this.worldWidth = 2000;
+        this.worldHeight = 1000;
+        this.cam = { x: 0, y: 0, zoom: 0.5, isDragging: false, dragStartX: 0, dragStartY: 0, hasMoved: false, lastPinchDist: null };
+
+        this.buildWorldPolygons();
+        this.initStartupModal();
+        this.bindGeoEvents();
+        this.resizeCanvas();
+        this.resetCamera();
+        requestAnimationFrame((t) => this.loop(t));
+    }
+
+    buildWorldPolygons() {
+        WORLD_NATIONS_DB.forEach(n => {
+            n.worldPolys = buildPolys(n.rings);
+            const [cx, cy] = geoToWorld(n.clon, n.clat);
+            n.cx = cx;
+            n.cy = cy;
+        });
+    }
+
+    initStartupModal() {
+        const select = document.getElementById('playable-nation-select');
+        const playableList = WORLD_NATIONS_DB.filter(n => n.playable);
+
+        playableList.forEach(n => {
+            const opt = document.createElement('option');
+            opt.value = n.id;
+            opt.textContent = `${n.name} — [جيش: ${n.military} | اقتصاد: ${n.economy} | كرة: ${n.fb.ovr}]`;
+            select.appendChild(opt);
+        });
+
+        const updatePreview = () => {
+            const chosen = playableList.find(n => n.id === select.value);
+            if (!chosen) return;
+            if (this.gameMode === 'worldcup') {
+                document.getElementById('prev-lbl-1').textContent = 'التقييم العام';
+                document.getElementById('prev-val-1').textContent = chosen.fb.ovr;
+                document.getElementById('prev-lbl-2').textContent = 'الهجوم';
+                document.getElementById('prev-val-2').textContent = chosen.fb.atk;
+                document.getElementById('prev-lbl-3').textContent = 'الوسط';
+                document.getElementById('prev-val-3').textContent = chosen.fb.mid;
+                document.getElementById('prev-lbl-4').textContent = 'الدفاع';
+                document.getElementById('prev-val-4').textContent = chosen.fb.def;
+            } else if (this.gameMode === 'chess') {
+                document.getElementById('prev-lbl-1').textContent = 'بطل الدولة';
+                document.getElementById('prev-val-1').textContent = chosen.chess.gm.split(' ')[0];
+                document.getElementById('prev-lbl-2').textContent = 'تصنيف ELO';
+                document.getElementById('prev-val-2').textContent = chosen.chess.elo;
+                document.getElementById('prev-lbl-3').textContent = 'المشاركون';
+                document.getElementById('prev-val-3').textContent = '100 دولة';
+                document.getElementById('prev-lbl-4').textContent = 'النظام';
+                document.getElementById('prev-val-4').textContent = 'تصاعدي';
+            } else {
+                document.getElementById('prev-lbl-1').textContent = 'الاقتصاد';
+                document.getElementById('prev-val-1').textContent = chosen.economy;
+                document.getElementById('prev-lbl-2').textContent = 'الجيش';
+                document.getElementById('prev-val-2').textContent = chosen.military;
+                document.getElementById('prev-lbl-3').textContent = 'الموارد';
+                document.getElementById('prev-val-3').textContent = chosen.resources;
+                document.getElementById('prev-lbl-4').textContent = 'الحلفاء';
+                document.getElementById('prev-val-4').textContent = `${chosen.allies}/10`;
+            }
+        };
+
+        select.addEventListener('change', updatePreview);
+
+        const modeCards = document.querySelectorAll('.mode-opt-card');
+        modeCards.forEach(card => {
+            card.addEventListener('click', () => {
+                modeCards.forEach(c => c.classList.remove('selected'));
+                card.classList.add('selected');
+                this.gameMode = card.dataset.mode;
+                updatePreview();
+            });
+        });
+
+        updatePreview();
+
+        const swatches = document.querySelectorAll('.color-opt');
+        const customInput = document.getElementById('custom-color-input');
+
+        swatches.forEach(btn => {
+            btn.addEventListener('click', () => {
+                swatches.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                this.playerColor = btn.dataset.color;
+                customInput.value = this.playerColor;
+            });
+        });
+
+        customInput.addEventListener('input', (e) => {
+            swatches.forEach(b => b.classList.remove('selected'));
+            this.playerColor = e.target.value;
+        });
+
+        document.getElementById('btn-start-sim').addEventListener('click', () => {
+            this.launchSelectedMode(select.value, this.playerColor, this.gameMode);
+        });
+    }
+
+    launchSelectedMode(playerId, chosenColor, mode) {
+        this.playerNationId = playerId;
+        this.playerColor = chosenColor;
+        this.gameMode = mode;
+
+        document.getElementById('startup-modal').style.display = 'none';
+
+        const geoDock = document.getElementById('geo-dock-wrapper');
+        const wcDock = document.getElementById('wc-dock-wrapper');
+        const chessDock = document.getElementById('chess-dock-wrapper');
+        const mapLegend = document.getElementById('map-legend-strip');
+        const mapCtrls = document.getElementById('map-corner-controls');
+
+        if (mode === 'worldcup') {
+            this.activeSystem = 'worldcup';
+            document.body.className = 'mode-worldcup';
+            geoDock.style.display = 'none';
+            chessDock.style.display = 'none';
+            wcDock.style.display = 'flex';
+            mapLegend.style.display = 'none';
+            mapCtrls.style.display = 'none';
+
+            this.worldCupEngine = new WorldCupFootballEngine(
+                this.canvas, this.ctx, playerId, chosenColor,
+                (m) => this.showToast(m),
+                (b, t, d) => this.showEndModal(b, t, d)
+            );
+            this.isRunning = true;
+            return;
+        }
+
+        if (mode === 'chess') {
+            this.activeSystem = 'chess';
+            document.body.className = 'mode-chess';
+            geoDock.style.display = 'none';
+            wcDock.style.display = 'none';
+            chessDock.style.display = 'flex';
+            mapLegend.style.display = 'none';
+            mapCtrls.style.display = 'none';
+
+            this.chessEngine = new WorldChessChampionshipEngine(
+                this.canvas, this.ctx, playerId,
+                (m) => this.showToast(m),
+                (b, t, d) => this.showEndModal(b, t, d)
+            );
+            this.isRunning = true;
+            return;
+        }
+
+        // Modes 1-4: Geopolitical Strategy
+        this.activeSystem = 'geo';
+        geoDock.style.display = 'flex';
+        wcDock.style.display = 'none';
+        chessDock.style.display = 'none';
+        mapLegend.style.display = 'flex';
+        mapCtrls.style.display = 'flex';
+
+        this.startGeopoliticalSimulation(playerId, chosenColor, mode);
+    }
+
+    startGeopoliticalSimulation(playerId, chosenColor, mode) {
+        const epochCfg = EPOCH_CONFIG[mode];
+        document.body.className = epochCfg.bodyClass;
+        document.getElementById('hud-epoch-badge').textContent = epochCfg.label;
+
+        this.nations = WORLD_NATIONS_DB.map(d => {
+            const allianceId = assignGeographicAlliance(d.clon, d.clat);
+            const bloc = ALLIANCE_BLOCS[allianceId];
+            return {
+                ...d,
+                displayName: epochCfg.titlePrefix ? `${epochCfg.titlePrefix}${d.name}` : d.name,
+                ownerId: d.id,
+                allianceId,
+                allianceName: bloc.name,
+                color: d.id === playerId ? chosenColor : (mode === 'worldwar' ? bloc.color : d.aiColor),
+                underAttackBy: null,
+                occupationTime: 0,
+                allySupport: 0,
+                colonyPower: 40
+            };
+        });
+
+        this.nationMap.clear();
+        this.nations.forEach(n => this.nationMap.set(n.id, n));
+
+        const player = this.nationMap.get(playerId);
+        this.treasury = Number((player.economy * 1.5).toFixed(1));
+
+        document.getElementById('hud-flag-dot').style.backgroundColor = this.playerColor;
+        document.getElementById('hud-nation-name').textContent = player.displayName;
+
+        const allianceStrip = document.getElementById('player-alliance-strip');
+        if (mode === 'worldwar') {
+            const alliesInBloc = this.nations.filter(n => n.allianceId === player.allianceId && n.id !== player.id);
+            allianceStrip.style.display = 'block';
+            allianceStrip.textContent = `🤝 أنت عضو في (${player.allianceName}) — معك ${alliesInBloc.length} دولة حليفة!`;
+            this.aiDecisionTimer = 28;
+        } else {
+            allianceStrip.style.display = 'none';
+            this.aiDecisionTimer = 75;
+        }
+
+        document.getElementById('econ-btn-title').textContent = `تطوير الاقتصاد (+${epochCfg.econUpgradeGain})`;
+        document.getElementById('mil-btn-title').textContent = `تعزيز الجيش (+${epochCfg.milUpgradeGain})`;
+
+        this.isRunning = true;
+        this.focusOnNation(player);
+        this.selectNation(playerId === 'EGY' ? 'LBY' : (playerId === 'USA' ? 'MEX' : 'EGY'));
+        this.addNews(`🌐 بدأت الحملة الاستراتيجية بقيادة ${player.displayName} (${epochCfg.label}).`, 'victory');
+        this.updateGeoHUD();
+    }
+
+    focusOnNation(nation) {
+        this.cam.zoom = Math.max(0.75, Math.min(1.4, this.canvas.width / 1100));
+        this.cam.x = (this.canvas.width / 2) - (nation.cx * this.cam.zoom);
+        this.cam.y = (this.canvas.height / 2) - (nation.cy * this.cam.zoom);
+        this.clampCamera();
+    }
+
+    computeTier(nation) {
+        const score = (nation.military * 0.55) + (nation.economy * 0.30) + (nation.resources * 0.15);
+        if (nation.military >= 95 || score >= 93) return 'Purple';
+        if (nation.military >= 84 || score >= 80) return 'Blue';
+        if (nation.military >= 74 || score >= 70) return 'Red';
+        if (nation.military >= 58 || score >= 56) return 'Green';
+        return 'Yellow';
+    }
+
+    getControlledTerritories(sovereignId) {
+        return this.nations.filter(n => n.ownerId === sovereignId);
+    }
+
+    getEmpireStats(sovereignId) {
+        const sov = this.nationMap.get(sovereignId);
+        const territories = this.getControlledTerritories(sovereignId);
+        let totalEcon = 0;
+        let totalRes = 0;
+
+        territories.forEach(t => {
+            totalEcon += t.economy;
+            totalRes += t.resources;
+        });
+
+        const hasActiveOffensive = this.activeInvasions.some(inv => inv.attackerId === sovereignId);
+        if (hasActiveOffensive) totalEcon *= 0.90;
+
+        const expansionBonus = Math.max(0, territories.length - 1) * 1.5;
+        const effectiveMilitary = sov.military + expansionBonus + (sov.allies * 0.4);
+
+        return { sovereign: sov, territories, totalEcon, totalRes, effectiveMilitary, hasActiveOffensive };
+    }
+
+    updateGeoEconomy(dt) {
+        const epochCfg = EPOCH_CONFIG[this.gameMode];
+        const paceMult = epochCfg.paceMultiplier;
+
+        if (this.econDevTimer > 0) {
+            this.econDevTimer = Math.max(0, this.econDevTimer - dt);
+            if (this.econDevTimer === 0) {
+                const player = this.nationMap.get(this.playerNationId);
+                const gain = epochCfg.econUpgradeGain;
+                player.economy = Number((player.economy + gain).toFixed(1));
+                player.tier = this.computeTier(player);
+                this.showToast(`📈 اكتملت التنمية! ارتفع اقتصاد ${player.displayName} بمقدار +${gain}`);
+                this.addNews(`📈 نجح مشروع التنمية في ${player.displayName} (+${gain} اقتصاد).`, 'victory');
+            }
+        }
+
+        this.econMarketTickTimer += dt;
+        if (this.econMarketTickTimer >= 30.0) {
+            this.econMarketTickTimer = 0;
+            this.nations.forEach(n => {
+                const isGrowth = Math.random() < 0.78;
+                const baseDelta = isGrowth ? (0.1 + Math.random() * 0.2) : -(0.1 + Math.random() * 0.1);
+                n.economy = Math.max(10, Number((n.economy + baseDelta * paceMult).toFixed(2)));
+            });
+        }
+
+        this.aiDevTickTimer += dt;
+        if (this.aiDevTickTimer >= 60.0) {
+            this.aiDevTickTimer = 0;
+            this.nations.forEach(n => {
+                if (n.id !== this.playerNationId && n.ownerId === n.id) {
+                    const baseBoost = n.economy >= 50 ? 5.0 : 3.0;
+                    const boost = Number((baseBoost * paceMult).toFixed(2));
+                    n.economy = Number((n.economy + boost).toFixed(2));
+                    n.military = Math.min(180, Number((n.military + boost).toFixed(2)));
+                    n.tier = this.computeTier(n);
+                }
+            });
+        }
+
+        const pStats = this.getEmpireStats(this.playerNationId);
+        document.getElementById('war-penalty-alert').style.display = pStats.hasActiveOffensive ? 'block' : 'none';
+
+        if (!pStats.hasActiveOffensive) {
+            const baseIncomePerSec = (pStats.totalEcon * 0.055) + (pStats.totalRes * 0.012);
+            this.treasury += (baseIncomePerSec * paceMult) * dt;
+        }
+
+        this.nations.forEach(n => {
+            if (n.ownerId === this.playerNationId && n.id !== this.playerNationId) {
+                n.occupationTime += dt;
+                if (n.occupationTime >= 300) {
+                    const orig = this.nationMap.get(n.id);
+                    const supportRate = (orig.allies * 0.035) * Math.max(0.4, paceMult);
+                    n.allySupport = Math.min(100, n.allySupport + supportRate * dt);
+                    const suppressed = (this.gameMode !== 'worldwar') ? (n.colonyPower > 50) : (n.colonyPower > n.allySupport);
+                    if (n.allySupport >= 100 && !suppressed) {
+                        n.ownerId = n.id;
+                        n.allySupport = 0;
+                        n.occupationTime = 0;
+                        n.colonyPower = 40;
+                        n.color = this.gameMode === 'worldwar' ? ALLIANCE_BLOCS[n.allianceId].color : orig.aiColor;
+                        this.showToast(`🚨 تمرد مسلح! استعادة ${n.displayName} استقلالها بدعم الحلفاء!`);
+                        this.addNews(`🚨 ثورة وانفصال: نجح حلفاء ${n.displayName} في تحريرها!`, 'alert');
+                    }
+                }
+            }
+        });
+    }
+
+    evaluateInvasion(attackerId, targetId) {
+        const target = this.nationMap.get(targetId);
+        const defenderId = target.ownerId;
+        const atkStats = this.getEmpireStats(attackerId);
+        const defStats = this.getEmpireStats(defenderId);
+
+        const atkPower = atkStats.effectiveMilitary + (atkStats.totalRes * 0.05);
+        const defPower = defStats.effectiveMilitary + (target.military * 0.25) + (defStats.sovereign.allies * 0.8);
+        const ratio = atkPower / Math.max(10, defPower);
+        let winChance = 0.50 + (ratio - 1.0) * 0.58;
+
+        const isDefensiveRepulsion = (target.economy > atkStats.sovereign.economy) && ((atkStats.effectiveMilitary - target.military) <= 30);
+        if (isDefensiveRepulsion) winChance = Math.min(winChance, 0.25);
+
+        winChance = Math.max(0.10, Math.min(0.92, winChance));
+        const duration = Math.max(45, Math.min(90, Math.round(45 + (target.area * 0.22) / Math.max(0.6, Math.min(1.4, ratio)))));
+        return { winChance, duration, atkPower, defPower, defenderId };
+    }
+
+    launchInvasion(attackerId, targetId) {
+        const target = this.nationMap.get(targetId);
+        if (!target || target.ownerId === attackerId || target.underAttackBy) return false;
+
+        const attacker = this.nationMap.get(attackerId);
+        const defender = this.nationMap.get(target.ownerId);
+
+        if (this.gameMode === 'worldwar' && attacker.allianceId === defender.allianceId) {
+            if (attackerId === this.playerNationId) this.showToast(`🤝 ${target.displayName} عضو معك في (${attacker.allianceName})!`);
+            return false;
+        }
+
+        const canInvade = (attacker.military >= target.military) || (attacker.economy >= target.economy);
+        if (!canInvade && attackerId === this.playerNationId) {
+            this.showToast(`⚠️ لا يمكنك غزو ${target.displayName} لعدم تفوقك العسكري أو الاقتصادي عليها.`);
+            return false;
+        }
+
+        if (attackerId === this.playerNationId) {
+            const cost = Math.round(25 + target.area * 0.35);
+            if (this.treasury < cost) {
+                this.showToast(`⚠️ الخزينة غير كافية! تحتاج إلى $${cost}B.`);
+                return false;
+            }
+            this.treasury -= cost;
+        }
+
+        const evalData = this.evaluateInvasion(attackerId, targetId);
+        const atkTerrs = this.getControlledTerritories(attackerId);
+        let originX = attacker.cx, originY = attacker.cy, minDist = Infinity;
+        atkTerrs.forEach(t => {
+            const d = Math.hypot(t.cx - target.cx, t.cy - target.cy);
+            if (d < minDist) { minDist = d; originX = t.cx; originY = t.cy; }
+        });
+
+        const angle = Math.atan2(target.cy - originY, target.cx - originX);
+        const willSucceed = Math.random() <= evalData.winChance;
+
+        this.activeInvasions.push({
+            id: `${attackerId}_${targetId}_${Date.now()}`,
+            attackerId,
+            defenderId: target.ownerId,
+            targetId,
+            progress: 0,
+            duration: evalData.duration,
+            willSucceed,
+            stallThreshold: willSucceed ? 1.0 : (0.40 + Math.random() * 0.35),
+            angle,
+            originX,
+            originY,
+            fillColor: attacker.color,
+            wavePhase: 0
+        });
+
+        target.underAttackBy = attackerId;
+        this.addNews(`⚔️ ${attacker.displayName} تطلق هجوماً عسكرياً على ${target.displayName}!`, attackerId === this.playerNationId ? 'alert' : '');
+        return true;
+    }
+
+    updateGeoInvasions(dt) {
+        for (let i = this.activeInvasions.length - 1; i >= 0; i--) {
+            const inv = this.activeInvasions[i];
+            const target = this.nationMap.get(inv.targetId);
+            if (!target || target.ownerId !== inv.defenderId) {
+                if (target && target.underAttackBy === inv.attackerId) target.underAttackBy = null;
+                this.activeInvasions.splice(i, 1);
+                continue;
+            }
+            inv.wavePhase += dt * 4.0;
+            inv.progress += dt / inv.duration;
+
+            if (inv.willSucceed && inv.progress >= 1.0) {
+                this.completeConquestVictory(inv);
+                this.activeInvasions.splice(i, 1);
+            } else if (!inv.willSucceed && inv.progress >= inv.stallThreshold) {
+                this.completeConquestFailure(inv);
+                this.activeInvasions.splice(i, 1);
+            }
+        }
+    }
+
+    completeConquestVictory(inv) {
+        const target = this.nationMap.get(inv.targetId);
+        const attacker = this.nationMap.get(inv.attackerId);
+        const prevOwner = this.nationMap.get(inv.defenderId);
+
+        target.underAttackBy = null;
+        target.ownerId = attacker.id;
+        target.color = attacker.color;
+        target.occupationTime = 0;
+        target.allySupport = 0;
+        target.colonyPower = 40;
+
+        attacker.economy = Number((attacker.economy + target.economy * 0.20).toFixed(1));
+        attacker.military = Math.min(180, Number((attacker.military + 0.8).toFixed(1)));
+        attacker.tier = this.computeTier(attacker);
+
+        for (let j = this.activeInvasions.length - 1; j >= 0; j--) {
+            const otherWar = this.activeInvasions[j];
+            if (otherWar.id === inv.id) continue;
+            if (otherWar.attackerId === target.id || (target.id === prevOwner.id && otherWar.attackerId === prevOwner.id)) {
+                const otherT = this.nationMap.get(otherWar.targetId);
+                if (otherT) otherT.underAttackBy = null;
+                this.activeInvasions.splice(j, 1);
+                this.addNews(`🕊️ توقفت الحرب بين ${prevOwner.displayName} و${otherT ? otherT.displayName : 'الخصم'} بعد سقوط ${target.displayName}!`);
+            }
+        }
+
+        if (attacker.id === this.playerNationId) {
+            const cashLoot = Number((target.economy * 0.25).toFixed(1));
+            this.treasury += cashLoot;
+            this.showToast(`🏆 تم ضم ${target.displayName} كمستعمرة (+$${cashLoot}B غنائم)`);
+            this.addNews(`🏆 ${attacker.displayName} تحكم سيطرتها على ${target.displayName}!`, 'victory');
+        } else {
+            this.addNews(`🚩 ${attacker.displayName} تبسط نفوذها على ${target.displayName}.`);
+        }
+
+        const pTerrs = this.getControlledTerritories(this.playerNationId);
+        if (pTerrs.length === 0) this.showEndModal('سقوط الدولة', 'انهيار الإمبراطورية', 'تمكنت القوى المنافسة من احتلال أراضيك بالكامل.');
+        else if (pTerrs.length === this.nations.length) this.showEndModal('هيمنة عالمية مطلقة', 'إمبراطور العالم الأوحد!', 'وحدت العالم بأسره تحت رايتك بنجاح.');
+    }
+
+    completeConquestFailure(inv) {
+        const target = this.nationMap.get(inv.targetId);
+        const attacker = this.nationMap.get(inv.attackerId);
+        const defender = this.nationMap.get(inv.defenderId);
+
+        target.underAttackBy = null;
+        defender.military = Math.min(180, Number((defender.military + 0.6).toFixed(1)));
+
+        if (attacker.id === this.playerNationId && defender.military > attacker.military) {
+            const nonCap = this.getControlledTerritories(this.playerNationId).filter(t => t.id !== this.playerNationId);
+            const seizeCount = Math.max(1, Math.floor(nonCap.length * 0.40));
+            for (let k = 0; k < seizeCount && nonCap.length > 0; k++) {
+                const lost = nonCap.shift();
+                lost.ownerId = defender.id;
+                lost.color = defender.color;
+            }
+            attacker.economy = Math.max(15, Number((attacker.economy * 0.92).toFixed(1)));
+            this.showToast(`💥 فشل الغزو! شنت ${defender.displayName} هجوماً مضاداً.`);
+        } else {
+            this.addNews(`🛡️ ${defender.displayName} تصد هجوم ${attacker.displayName} بنجاح.`);
+        }
+    }
+
+    updateGeoAI(dt) {
+        this.aiDecisionTimer -= dt;
+        if (this.aiDecisionTimer > 0) return;
+
+        this.aiDecisionTimer = this.gameMode === 'worldwar' ? (32 + Math.random() * 25) : (150 + Math.random() * 110);
+        const aiActiveWars = this.activeInvasions.filter(inv => inv.attackerId !== this.playerNationId);
+        if (this.gameMode !== 'worldwar' && aiActiveWars.length >= 1) return;
+        if (this.gameMode === 'worldwar' && aiActiveWars.length >= 4) return;
+
+        const eligible = this.nations.filter(n => n.playable && n.id !== this.playerNationId && n.ownerId === n.id && !this.activeInvasions.some(inv => inv.attackerId === n.id));
+        if (eligible.length === 0) return;
+        const actor = eligible[Math.floor(Math.random() * eligible.length)];
+
+        let targets = this.nations.filter(t => t.ownerId !== actor.id && !t.underAttackBy);
+        if (this.gameMode === 'worldwar') targets = targets.filter(t => this.nationMap.get(t.ownerId).allianceId !== actor.allianceId);
+        else targets = targets.filter(t => t.ownerId !== this.playerNationId);
+
+        let bestTarget = null, bestScore = -Infinity;
+        targets.forEach(cand => {
+            const dist = Math.hypot(cand.cx - actor.cx, cand.cy - actor.cy);
+            if (dist > 420) return;
+            const evalRes = this.evaluateInvasion(actor.id, cand.id);
+            if (evalRes.winChance < 0.60) return;
+            const score = evalRes.winChance * 100 - dist * 0.1;
+            if (score > bestScore) { bestScore = score; bestTarget = cand; }
+        });
+
+        if (bestTarget) this.launchInvasion(actor.id, bestTarget.id);
+    }
+
+    selectNation(nationId) {
+        this.selectedTargetId = nationId;
+        this.updateGeoTargetInspector();
+    }
+
+    updateGeoTargetInspector() {
+        const target = this.nationMap.get(this.selectedTargetId);
+        if (!target) return;
+
+        const owner = this.nationMap.get(target.ownerId);
+        const player = this.nationMap.get(this.playerNationId);
+        const tier = this.computeTier(target);
+
+        document.getElementById('insp-name').textContent = target.displayName;
+        let ownerText = target.ownerId === target.id ? 'دولة مستقلة ذات سيادة' : `تابعة لـ: ${owner.displayName}`;
+        if (this.gameMode === 'worldwar') ownerText += ` • (${owner.allianceName})`;
+        document.getElementById('insp-owner').textContent = ownerText;
+
+        document.getElementById('insp-dot').style.backgroundColor = TIER_INFO[tier].color;
+        const badge = document.getElementById('insp-tier');
+        badge.textContent = TIER_INFO[tier].label;
+        badge.style.backgroundColor = TIER_INFO[tier].color;
+
+        document.getElementById('insp-econ').textContent = target.economy.toFixed(1);
+        document.getElementById('insp-mil').textContent = target.military.toFixed(1);
+        document.getElementById('insp-res').textContent = target.resources;
+        document.getElementById('insp-allies').textContent = `${target.allies}/10`;
+
+        const pbBox = document.getElementById('power-balance-box');
+        const colonyBox = document.getElementById('colony-panel-box');
+        const actionBtn = document.getElementById('btn-primary-action');
+
+        if (target.ownerId === this.playerNationId && target.id === this.playerNationId) {
+            pbBox.style.display = 'none';
+            colonyBox.style.display = 'none';
+            actionBtn.disabled = true;
+            actionBtn.className = 'btn-action-main btn-invade-style';
+            actionBtn.textContent = 'هذه هي عاصمة إمبراطوريتك';
+        } else if (target.ownerId === this.playerNationId) {
+            pbBox.style.display = 'none';
+            colonyBox.style.display = 'block';
+            const supportPct = Math.round(target.allySupport);
+            document.getElementById('colony-power-val').textContent = target.colonyPower;
+            document.getElementById('colony-support-val').textContent = supportPct;
+            document.getElementById('colony-support-fill').style.width = `${supportPct}%`;
+            document.getElementById('colony-status-msg').textContent = target.occupationTime < 300
+                ? `المستعمرة هادئة. بدء دعم الحلفاء بعد: ${Math.ceil(300 - target.occupationTime)}ث`
+                : '⚠️ الحلفاء يدعمون التمرد. حافظ على تفوق طاقة الاستعمار!';
+            actionBtn.disabled = this.treasury < 30;
+            actionBtn.className = 'btn-action-main btn-colony-style';
+            actionBtn.textContent = `🛡️ تطوير الاستعمار وقمع الثورة ($30B) [+25 طاقة]`;
+        } else if (this.gameMode === 'worldwar' && owner.allianceId === player.allianceId) {
+            pbBox.style.display = 'none';
+            colonyBox.style.display = 'none';
+            actionBtn.disabled = true;
+            actionBtn.className = 'btn-action-main btn-invade-style';
+            actionBtn.textContent = `🤝 دولة حليفة ضمن (${player.allianceName})`;
+        } else if (target.underAttackBy) {
+            pbBox.style.display = 'none';
+            colonyBox.style.display = 'none';
+            actionBtn.disabled = true;
+            actionBtn.className = 'btn-action-main btn-invade-style';
+            actionBtn.textContent = 'هذه الدولة تخوض حرباً حالياً...';
+        } else {
+            colonyBox.style.display = 'none';
+            pbBox.style.display = 'block';
+            const evalData = this.evaluateInvasion(this.playerNationId, target.id);
+            const atkShare = Math.round((evalData.atkPower / (evalData.atkPower + evalData.defPower)) * 100);
+            const winPct = Math.round(evalData.winChance * 100);
+            const cost = Math.round(25 + target.area * 0.35);
+
+            document.getElementById('pb-atk-lbl').textContent = `قوتك: ${evalData.atkPower.toFixed(0)}`;
+            document.getElementById('pb-def-lbl').textContent = `الخصم: ${evalData.defPower.toFixed(0)}`;
+            document.getElementById('pb-bar-fill').style.width = `${atkShare}%`;
+            document.getElementById('pb-win-pct').textContent = `${winPct}%`;
+            document.getElementById('pb-duration').textContent = `${evalData.duration} ثانية`;
+
+            actionBtn.disabled = this.treasury < cost;
+            actionBtn.className = 'btn-action-main btn-invade-style';
+            actionBtn.textContent = `⚔️ شن غزو استراتيجي على ${target.displayName} ($${cost}B)`;
+        }
+    }
+
+    updateGeoHUD() {
+        const pStats = this.getEmpireStats(this.playerNationId);
+        const player = pStats.sovereign;
+        const epochCfg = EPOCH_CONFIG[this.gameMode] || EPOCH_CONFIG.peaceful;
+
+        document.getElementById('hud-terr-count').textContent = `الأقاليم: ${pStats.territories.length} / ${this.nations.length}`;
+        document.getElementById('hud-treasury').textContent = `$${this.treasury.toFixed(1)}B`;
+        document.getElementById('hud-economy').textContent = pStats.totalEcon.toFixed(1);
+        document.getElementById('hud-military').textContent = pStats.effectiveMilitary.toFixed(1);
+        document.getElementById('hud-resources').textContent = Math.round(pStats.totalRes);
+        document.getElementById('hud-allies').textContent = `${player.allies}/10`;
+
+        const tierBadge = document.getElementById('hud-tier-badge');
+        tierBadge.textContent = TIER_INFO[player.tier].label;
+        tierBadge.style.backgroundColor = TIER_INFO[player.tier].color;
+
+        const econBtn = document.getElementById('btn-dev-econ');
+        if (this.econDevTimer > 0) {
+            econBtn.disabled = true;
+            document.getElementById('econ-btn-title').textContent = `جاري التنمية... ${Math.ceil(this.econDevTimer)}ث`;
+            document.getElementById('econ-btn-sub').textContent = `سيتم إضافة +${epochCfg.econUpgradeGain} للاقتصاد`;
+        } else {
+            econBtn.disabled = this.treasury < 60;
+            document.getElementById('econ-btn-title').textContent = `تطوير الاقتصاد (+${epochCfg.econUpgradeGain})`;
+            document.getElementById('econ-btn-sub').textContent = `التكلفة: $60B • المدة: 60 ثانية`;
+        }
+
+        document.getElementById('btn-dev-mil').disabled = this.treasury < 55;
+
+        const warsContainer = document.getElementById('active-wars-container');
+        document.getElementById('active-wars-badge').textContent = `${this.activeInvasions.length} نشطة`;
+        if (this.activeInvasions.length === 0) {
+            warsContainer.innerHTML = `<div style="font-size:11.5px; color:var(--text-muted); text-align:center; padding:6px;">لا توجد حروب جارية حالياً.</div>`;
+        } else {
+            warsContainer.innerHTML = this.activeInvasions.map(inv => {
+                const atk = this.nationMap.get(inv.attackerId);
+                const tgt = this.nationMap.get(inv.targetId);
+                const pct = Math.min(100, Math.round(inv.progress * 100));
+                return `
+                    <div class="war-progress-card">
+                        <div class="war-prog-top">
+                            <span>${atk.displayName} ⬅ ${tgt.displayName}</span>
+                            <span style="font-family:'JetBrains Mono',monospace;">${pct}%</span>
+                        </div>
+                        <div class="war-prog-bar">
+                            <div class="war-prog-inner" style="width:${pct}%; background:${inv.fillColor};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        this.updateGeoTargetInspector();
+    }
+
+    renderGeoMap() {
+        const ctx = this.ctx;
+        const w = this.canvas.width;
+        const h = this.canvas.height;
+        const epochCfg = EPOCH_CONFIG[this.gameMode] || EPOCH_CONFIG.peaceful;
+
+        ctx.fillStyle = epochCfg.ocean;
+        ctx.fillRect(0, 0, w, h);
+
+        ctx.save();
+        ctx.translate(this.cam.x, this.cam.y);
+        ctx.scale(this.cam.zoom, this.cam.zoom);
+
+        const list = this.nations.length > 0 ? this.nations : WORLD_NATIONS_DB.map(d => ({ ...d, ownerId: d.id, color: d.aiColor }));
+        list.forEach(nation => {
+            const isSelected = nation.id === this.selectedTargetId;
+            const isConquered = nation.ownerId !== nation.id;
+            const isPlayer = nation.ownerId === this.playerNationId;
+
+            ctx.beginPath();
+            nation.worldPolys.forEach(poly => {
+                poly.forEach((pt, idx) => idx === 0 ? ctx.moveTo(pt[0], pt[1]) : ctx.lineTo(pt[0], pt[1]));
+                ctx.closePath();
+            });
+
+            if (this.gameMode === 'worldwar') {
+                ctx.fillStyle = this.hexToRgba(nation.color, isConquered || isPlayer ? 0.78 : 0.48);
+            } else if (isConquered || isPlayer) {
+                ctx.fillStyle = this.hexToRgba(nation.color, 0.72);
+            } else {
+                ctx.fillStyle = epochCfg.palette[nation.biome] || epochCfg.palette.FOREST;
+            }
+            ctx.fill();
+
+            const inv = this.activeInvasions.find(item => item.targetId === nation.id);
+            if (inv) {
+                ctx.save();
+                ctx.clip();
+                let maxR = 30;
+                nation.worldPolys.forEach(poly => poly.forEach(pt => { const d = Math.hypot(pt[0] - nation.cx, pt[1] - nation.cy); if (d > maxR) maxR = d; }));
+                ctx.translate(nation.cx, nation.cy);
+                ctx.rotate(inv.angle);
+                const frontX = -maxR * 1.05 + (inv.progress * maxR * 2.15);
+                ctx.beginPath();
+                ctx.moveTo(-maxR * 1.4, -maxR * 1.4);
+                for (let s = 0; s <= 18; s++) {
+                    const t = s / 18;
+                    const y = -maxR * 1.3 + t * (maxR * 2.6);
+                    ctx.lineTo(frontX + Math.sin(t * Math.PI * 4 + inv.wavePhase) * 3.8, y);
+                }
+                ctx.lineTo(-maxR * 1.4, maxR * 1.4);
+                ctx.closePath();
+                ctx.fillStyle = this.hexToRgba(inv.fillColor, 0.85);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            ctx.strokeStyle = isSelected ? '#0f172a' : 'rgba(100, 116, 139, 0.65)';
+            ctx.lineWidth = (isSelected ? 2.8 : 1.1) / this.cam.zoom;
+            ctx.stroke();
+        });
+
+        // Labels & Dots
+        list.forEach(nation => {
+            if (this.cam.zoom < 0.72 && !nation.playable && nation.area < 34) return;
+            const tier = this.nations.length > 0 ? this.computeTier(nation) : nation.tier;
+            const dotR = Math.max(3.6, 5.2 / Math.sqrt(this.cam.zoom));
+
+            ctx.beginPath();
+            ctx.arc(nation.cx, nation.cy - 4, dotR + 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(nation.cx, nation.cy - 4, dotR, 0, Math.PI * 2);
+            ctx.fillStyle = TIER_INFO[tier].color;
+            ctx.fill();
+
+            const fontSize = Math.max(8.5, Math.round(11 / Math.pow(this.cam.zoom, 0.35)));
+            ctx.font = `700 ${fontSize}px Cairo, sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            const labelText = nation.displayName || nation.name;
+            ctx.lineWidth = 2.6 / this.cam.zoom;
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeText(labelText, nation.cx, nation.cy + 3);
+            ctx.fillStyle = '#0f172a';
+            ctx.fillText(labelText, nation.cx, nation.cy + 3);
+        });
+
+        ctx.restore();
+    }
+
+    bindGeoEvents() {
+        window.addEventListener('resize', () => this.resizeCanvas());
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            this.cam.isDragging = true;
+            this.cam.hasMoved = false;
+            this.cam.dragStartX = e.clientX - this.cam.x;
+            this.cam.dragStartY = e.clientY - this.cam.y;
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (this.activeSystem !== 'geo' || !this.cam.isDragging) return;
+            const dx = e.clientX - this.cam.dragStartX - this.cam.x;
+            const dy = e.clientY - this.cam.dragStartY - this.cam.y;
+            if (Math.hypot(dx, dy) > 4) this.cam.hasMoved = true;
+            this.cam.x = e.clientX - this.cam.dragStartX;
+            this.cam.y = e.clientY - this.cam.dragStartY;
+            this.clampCamera();
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            if (this.cam.isDragging && !this.cam.hasMoved && this.isRunning) {
+                const rect = this.canvas.getBoundingClientRect();
+                if (e.clientY <= rect.bottom && e.clientX <= rect.right) {
+                    const pt = this.screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+                    const hit = this.hitTestNation(pt.x, pt.y);
+                    if (hit) this.selectNation(hit.id);
+                }
+            }
+            this.cam.isDragging = false;
+        });
+
+        this.canvas.addEventListener('touchstart', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            if (e.touches.length === 1) {
+                const t = e.touches[0];
+                this.cam.isDragging = true;
+                this.cam.hasMoved = false;
+                this.cam.dragStartX = t.clientX - this.cam.x;
+                this.cam.dragStartY = t.clientY - this.cam.y;
+            } else if (e.touches.length === 2) {
+                this.cam.isDragging = false;
+                this.cam.lastPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchmove', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            if (e.touches.length === 1 && this.cam.isDragging) {
+                const t = e.touches[0];
+                const dx = t.clientX - this.cam.dragStartX - this.cam.x;
+                const dy = t.clientY - this.cam.dragStartY - this.cam.y;
+                if (Math.hypot(dx, dy) > 4) this.cam.hasMoved = true;
+                this.cam.x = t.clientX - this.cam.dragStartX;
+                this.cam.y = t.clientY - this.cam.dragStartY;
+                this.clampCamera();
+            } else if (e.touches.length === 2 && this.cam.lastPinchDist) {
+                const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                const rect = this.canvas.getBoundingClientRect();
+                this.zoomAtPoint(dist / this.cam.lastPinchDist, midX - rect.left, midY - rect.top);
+                this.cam.lastPinchDist = dist;
+            }
+        }, { passive: true });
+
+        this.canvas.addEventListener('touchend', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            if (this.cam.isDragging && !this.cam.hasMoved && this.isRunning && e.changedTouches.length > 0) {
+                const t = e.changedTouches[0];
+                const rect = this.canvas.getBoundingClientRect();
+                const pt = this.screenToWorld(t.clientX - rect.left, t.clientY - rect.top);
+                const hit = this.hitTestNation(pt.x, pt.y);
+                if (hit) this.selectNation(hit.id);
+            }
+            this.cam.isDragging = false;
+            this.cam.lastPinchDist = null;
+        });
+
+        this.canvas.addEventListener('wheel', (e) => {
+            if (this.activeSystem !== 'geo') return;
+            e.preventDefault();
+            const rect = this.canvas.getBoundingClientRect();
+            this.zoomAtPoint(e.deltaY < 0 ? 1.15 : 0.87, e.clientX - rect.left, e.clientY - rect.top);
+        }, { passive: false });
+
+        document.getElementById('zoom-in-btn').addEventListener('click', () => this.zoomAtPoint(1.25, this.canvas.width / 2, this.canvas.height / 2));
+        document.getElementById('zoom-out-btn').addEventListener('click', () => this.zoomAtPoint(0.8, this.canvas.width / 2, this.canvas.height / 2));
+        document.getElementById('zoom-reset-btn').addEventListener('click', () => this.resetCamera());
+
+        document.getElementById('btn-dev-econ').addEventListener('click', () => {
+            if (this.econDevTimer > 0 || this.treasury < 60) return;
+            this.treasury -= 60;
+            this.econDevTimer = 60.0;
+            this.updateGeoHUD();
+        });
+
+        document.getElementById('btn-dev-mil').addEventListener('click', () => {
+            if (this.treasury < 55) return;
+            this.treasury -= 55;
+            const player = this.nationMap.get(this.playerNationId);
+            const gain = (EPOCH_CONFIG[this.gameMode] || EPOCH_CONFIG.peaceful).milUpgradeGain;
+            player.military = Math.min(180, Number((player.military + gain).toFixed(1)));
+            player.tier = this.computeTier(player);
+            this.updateGeoHUD();
+        });
+
+        document.getElementById('btn-primary-action').addEventListener('click', () => {
+            if (!this.selectedTargetId) return;
+            const target = this.nationMap.get(this.selectedTargetId);
+            if (target.ownerId === this.playerNationId && target.id !== this.playerNationId) {
+                if (this.treasury >= 30) {
+                    this.treasury -= 30;
+                    target.colonyPower += 25;
+                    this.showToast(`🛡️ تم تعزيز طاقة الاستعمار في ${target.displayName} لتصبح ${target.colonyPower}`);
+                    this.updateGeoHUD();
+                }
+            } else if (target.ownerId !== this.playerNationId) {
+                this.launchInvasion(this.playerNationId, target.id);
+                this.updateGeoHUD();
+            }
+        });
+
+        const btnPause = document.getElementById('btn-pause');
+        const btnS1 = document.getElementById('btn-spd-1');
+        const btnS2 = document.getElementById('btn-spd-2');
+
+        btnPause.addEventListener('click', () => {
+            this.isPaused = !this.isPaused;
+            btnPause.classList.toggle('active', this.isPaused);
+            btnPause.textContent = this.isPaused ? 'استئناف' : 'إيقاف';
+        });
+        btnS1.addEventListener('click', () => { this.simSpeed = 1; this.isPaused = false; btnPause.classList.remove('active'); btnS1.classList.add('active'); btnS2.classList.remove('active'); });
+        btnS2.addEventListener('click', () => { this.simSpeed = 2; this.isPaused = false; btnPause.classList.remove('active'); btnS2.classList.add('active'); btnS1.classList.remove('active'); });
+    }
+
+    zoomAtPoint(factor, sx, sy) {
+        const newZoom = Math.max(0.32, Math.min(3.8, this.cam.zoom * factor));
+        this.cam.x = sx - (sx - this.cam.x) * (newZoom / this.cam.zoom);
+        this.cam.y = sy - (sy - this.cam.y) * (newZoom / this.cam.zoom);
+        this.cam.zoom = newZoom;
+        this.clampCamera();
+    }
+
+    clampCamera() {
+        const minX = this.canvas.width - this.worldWidth * this.cam.zoom - 120;
+        const maxX = 120;
+        const minY = this.canvas.height - this.worldHeight * this.cam.zoom - 80;
+        const maxY = 80;
+        this.cam.x = Math.max(Math.min(this.cam.x, maxX), Math.min(minX, maxX));
+        this.cam.y = Math.max(Math.min(this.cam.y, maxY), Math.min(minY, maxY));
+    }
+
+    resizeCanvas() {
+        const container = document.getElementById('canvas-viewport');
+        this.canvas.width = container.clientWidth;
+        this.canvas.height = container.clientHeight;
+    }
+
+    resetCamera() {
+        const scaleX = this.canvas.width / this.worldWidth;
+        const scaleY = this.canvas.height / this.worldHeight;
+        this.cam.zoom = Math.max(0.35, Math.min(scaleX, scaleY) * 0.96);
+        this.cam.x = (this.canvas.width - this.worldWidth * this.cam.zoom) / 2;
+        this.cam.y = (this.canvas.height - this.worldHeight * this.cam.zoom) / 2;
+    }
+
+    screenToWorld(sx, sy) {
+        return { x: (sx - this.cam.x) / this.cam.zoom, y: (sy - this.cam.y) / this.cam.zoom };
+    }
+
+    hitTestNation(wx, wy) {
+        const list = this.nations.length > 0 ? this.nations : WORLD_NATIONS_DB;
+        for (let i = list.length - 1; i >= 0; i--) {
+            const n = list[i];
+            for (const poly of n.worldPolys) {
+                if (this.pointInPoly(wx, wy, poly)) return n;
+            }
+        }
+        return null;
+    }
+
+    pointInPoly(x, y, poly) {
+        let inside = false;
+        for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+            const xi = poly[i][0], yi = poly[i][1];
+            const xj = poly[j][0], yj = poly[j][1];
+            const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / ((yj - yi) || 0.00001) + xi);
+            if (intersect) inside = !inside;
+        }
+        return inside;
+    }
+
+    hexToRgba(hex, alpha) {
+        const clean = hex.replace('#', '');
+        const num = parseInt(clean, 16);
+        return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+    }
+
+    addNews(text, type = '') {
+        this.newsLog.unshift({ text, type });
+        if (this.newsLog.length > 15) this.newsLog.pop();
+        document.getElementById('news-feed').innerHTML = this.newsLog.map(n => `<div class="news-item ${n.type}">${n.text}</div>`).join('');
+    }
+
+    showToast(msg) {
+        const el = document.getElementById('toast-banner');
+        el.textContent = msg;
+        el.classList.add('show');
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(() => el.classList.remove('show'), 3800);
+    }
+
+    showEndModal(badge, title, desc) {
+        document.getElementById('end-badge').textContent = badge;
+        document.getElementById('end-title').textContent = title;
+        document.getElementById('end-desc').textContent = desc;
+        document.getElementById('end-modal').style.display = 'flex';
+    }
+
+    loop(ts) {
+        if (!this.lastTs) this.lastTs = ts;
+        const rawDt = Math.min(0.05, (ts - this.lastTs) / 1000);
+        this.lastTs = ts;
+
+        if (this.activeSystem === 'worldcup' && this.worldCupEngine) {
+            this.worldCupEngine.update(rawDt);
+            this.worldCupEngine.render();
+        } else if (this.activeSystem === 'chess' && this.chessEngine) {
+            this.chessEngine.render();
+        } else {
+            if (this.isRunning && !this.isPaused) {
+                const dt = rawDt * this.simSpeed;
+                this.updateGeoEconomy(dt);
+                this.updateGeoInvasions(dt);
+                this.updateGeoAI(dt);
+                this.hudSyncTimer = (this.hudSyncTimer || 0) + rawDt;
+                if (this.hudSyncTimer >= 0.2) {
+                    this.hudSyncTimer = 0;
+                    this.updateGeoHUD();
+                }
+            }
+            this.renderGeoMap();
+        }
+
+        requestAnimationFrame((t) => this.loop(t));
+    }
+}
+
+window.onload = () => {
+    window.geoApp = new GeoPulseMasterApp();
+};
+</script>
+</body>
+</html>
